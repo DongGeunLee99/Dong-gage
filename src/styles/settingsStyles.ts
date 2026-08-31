@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -50,6 +50,6 @@ export function createStyles(colors: ColorPalette) {
       borderWidth: 1,
       borderColor: colors.line,
     },
-    logoutBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.expense },
+    logoutBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: LedgerColors.expense },
   });
 }

@@ -16,6 +16,7 @@ import {
 
 import { CalendarTabIcon, ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FixedIcon, PencilIcon } from '@/components/icons';
 import { INCOME_CATEGORY_KEY } from '@/constants/categories';
+import { LedgerColors } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 import { formatFullDateWithYear } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
@@ -242,7 +243,7 @@ export default function TransactionModal() {
         <Pressable style={styles.amountWrap} onPress={() => goToField('amount')}>
           <TextInput
             ref={amountInputRef}
-            style={[styles.amountInput, { color: type === 'income' ? colors.income : colors.expense }]}
+            style={[styles.amountInput, { color: type === 'income' ? LedgerColors.income : LedgerColors.expense }]}
             value={formatAmount(amount)}
             onChangeText={handleAmountChange}
             onFocus={() => setActiveField('amount')}

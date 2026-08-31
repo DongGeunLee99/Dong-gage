@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ChevronLeftIcon, ChevronRightIcon, FilterIcon } from '@/components/icons';
+import { LedgerColors } from '@/constants/ledgerColors';
 import { formatFullDateWithWeekday, formatYearMonth } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
 import { useMonth } from '@/store/monthContext';
@@ -98,7 +99,7 @@ export default function ListScreen() {
                 {formatFullDateWithWeekday(group.date, language)}
                 {group.date === TODAY.dateStr ? ` · ${t('common.today')}` : ''}
               </Text>
-              <Text style={[styles.dayHeadRight, { color: group.net >= 0 ? colors.income : colors.expense }]}>
+              <Text style={[styles.dayHeadRight, { color: group.net >= 0 ? LedgerColors.income : LedgerColors.expense }]}>
                 {group.net >= 0 ? '+' : '-'}
                 {formatAmount(Math.abs(group.net))}
               </Text>
@@ -121,7 +122,7 @@ export default function ListScreen() {
                     {!!item.memo && <Text style={styles.txMemo}>{item.memo}</Text>}
                   </View>
                   <View style={styles.txRight}>
-                    <Text style={[styles.txAmt, { color: item.type === 'income' ? colors.income : colors.expense }]}>
+                    <Text style={[styles.txAmt, { color: item.type === 'income' ? LedgerColors.income : LedgerColors.expense }]}>
                       {item.type === 'income' ? '+' : '-'}
                       {formatAmount(item.amount)}
                     </Text>

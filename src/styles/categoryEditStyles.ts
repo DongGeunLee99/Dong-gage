@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -80,6 +80,6 @@ export function createStyles(colors: ColorPalette) {
     subChipText: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 13, color: colors.ink },
     subChipRemove: { fontFamily: LedgerFonts.bodyBold, fontSize: 15, color: colors.muted },
     deleteRow: { alignItems: 'center', paddingVertical: 10 },
-    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: colors.expense },
+    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: LedgerColors.expense },
   });
 }

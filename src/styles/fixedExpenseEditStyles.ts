@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -21,7 +21,7 @@ export function createStyles(colors: ColorPalette) {
       paddingVertical: 6,
     },
     amountWrap: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, paddingVertical: 4 },
-    amountInput: { fontFamily: LedgerFonts.headingBold, fontSize: 36, color: colors.expense, padding: 0, minWidth: 60, textAlign: 'right' },
+    amountInput: { fontFamily: LedgerFonts.headingBold, fontSize: 36, color: LedgerColors.expense, padding: 0, minWidth: 60, textAlign: 'right' },
     amountUnit: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 18, color: colors.muted },
     dayRow: {
       flexDirection: 'row',
@@ -47,6 +47,6 @@ export function createStyles(colors: ColorPalette) {
       padding: 0,
     },
     deleteRow: { alignItems: 'center', paddingVertical: 10 },
-    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: colors.expense },
+    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: LedgerColors.expense },
   });
 }

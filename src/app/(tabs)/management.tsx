@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ChevronRightIcon, FixedIcon, TargetIcon } from '@/components/icons';
+import { LedgerColors } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 import { useBudgets } from '@/store/budgetsContext';
 import { useCategories } from '@/store/categoriesContext';
@@ -88,7 +89,7 @@ export default function ManagementScreen() {
                 key={f.id}
                 style={[styles.row, i === fixedExpenses.length - 1 && styles.rowLast]}
                 onPress={() => router.push({ pathname: '/fixedExpenseEdit', params: { id: f.id } })}>
-                <View style={[styles.iconSq, { backgroundColor: f.on ? colors.fixed : colors.dashed }]}>
+                <View style={[styles.iconSq, { backgroundColor: f.on ? LedgerColors.fixed : colors.dashed }]}>
                   <FixedIcon size={16} />
                 </View>
                 <View style={styles.rowMid}>

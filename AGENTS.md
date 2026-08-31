@@ -27,6 +27,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 - **라우팅: Expo Router 파일 기반 라우팅.** 탭 화면은 `src/app/(tabs)/`, 모달/편집 화면은 `src/app/` 루트에 개별 파일로 두고 `_layout.tsx`의 `Stack.Screen`에서 `presentation: 'modal'`을 지정한다.
 - **스타일: `src/styles/`에 컴포넌트 로직과 분리해서 모은다.** 화면/모달/레이아웃 컴포넌트 하나당 `src/styles/xxxStyles.ts` 파일 하나에 `export function createStyles(colors: ColorPalette)`를 두고(테마 무관 정적 스타일이 있으면 같은 파일에 `export const toggleStyles`로 추가), 컴포넌트 파일에서는 `useMemo(() => createStyles(colors), [colors])`로 가져다 쓴다. 스타일 정의를 컴포넌트 파일 안에 두지 않는다.
 - **데이터 소스 구분.** `categories`/`transactions`는 Supabase 연동(`addTransaction` 등은 optimistic update), `budgets`/`fixed-expenses`/`settings`/`month`는 로컬 상태(AsyncStorage 또는 메모리)다. 어떤 컨텍스트가 어디서 오는지 헷갈리면 `src/store/`의 각 파일 상단을 확인한다.
+- **색상: 카테고리/시맨틱 색은 `LedgerColors`(`src/constants/ledgerColors.ts`) 하나에만 정의한다.** `ColorPalette`(`src/constants/themePalettes.ts`, `useSettings().colors`로 접근)는 테마마다 실제로 달라지는 중립색(bg/card/ink/muted/line 등)만 담는다. `income`/`expense`/`food`처럼 카테고리·시맨틱 색을 `ColorPalette`에 다시 추가하면 `LedgerColors`와 값이 갈라지는 이중 정의가 생긴다 — 새 색상은 항상 `LedgerColors`에 추가한다.
 
 ## 네이밍 컨벤션
 

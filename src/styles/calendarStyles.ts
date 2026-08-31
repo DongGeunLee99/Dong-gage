@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -89,7 +89,7 @@ export function createStyles(colors: ColorPalette) {
       gap: 3,
       borderRadius: 10,
     },
-    dayCellSelected: { borderWidth: 2, borderColor: colors.selectedDay, backgroundColor: colors.card },
+    dayCellSelected: { borderWidth: 2, borderColor: LedgerColors.selectedDay, backgroundColor: colors.card },
     dayNum: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 13, color: colors.ink },
     todayBadge: {
       width: 22,

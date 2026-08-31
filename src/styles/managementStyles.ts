@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export const toggleStyles = StyleSheet.create({
@@ -33,7 +33,7 @@ export function createStyles(colors: ColorPalette) {
       textTransform: 'uppercase',
       letterSpacing: 0.3,
     },
-    addLink: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.income },
+    addLink: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: LedgerColors.income },
     groupCard: {
       backgroundColor: colors.card,
       borderRadius: 16,
@@ -58,7 +58,7 @@ export function createStyles(colors: ColorPalette) {
     rowMid: { flex: 1, gap: 2 },
     rowName: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 14.5, color: colors.ink },
     rowSub: { fontFamily: LedgerFonts.body, fontSize: 12, color: colors.muted },
-    rowAmtExpense: { fontFamily: LedgerFonts.headingBold, fontSize: 14, color: colors.expense },
+    rowAmtExpense: { fontFamily: LedgerFonts.headingBold, fontSize: 14, color: LedgerColors.expense },
     rowAmtNeutral: { fontFamily: LedgerFonts.headingBold, fontSize: 14, color: colors.ink },
   });
 }

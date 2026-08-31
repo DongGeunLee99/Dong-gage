@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export const toggleStyles = StyleSheet.create({
@@ -48,8 +48,8 @@ export function createStyles(colors: ColorPalette) {
       elevation: 1,
     },
     segText: { fontFamily: LedgerFonts.bodyBold, fontSize: 14, color: colors.muted },
-    segTextExpense: { fontFamily: LedgerFonts.bodyBold, fontSize: 14, color: colors.expense },
-    segTextIncome: { fontFamily: LedgerFonts.bodyBold, fontSize: 14, color: colors.income },
+    segTextExpense: { fontFamily: LedgerFonts.bodyBold, fontSize: 14, color: LedgerColors.expense },
+    segTextIncome: { fontFamily: LedgerFonts.bodyBold, fontSize: 14, color: LedgerColors.income },
     amountWrap: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, paddingVertical: 4 },
     amountInput: { fontFamily: LedgerFonts.headingBold, fontSize: 42, padding: 0, minWidth: 60, textAlign: 'right' },
     amountUnit: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 20, color: colors.muted },
@@ -100,7 +100,7 @@ export function createStyles(colors: ColorPalette) {
       paddingBottom: 8,
     },
     deleteRow: { alignItems: 'center', paddingVertical: 10 },
-    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: colors.expense },
+    deleteRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13.5, color: LedgerColors.expense },
     accessoryBar: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -112,6 +112,6 @@ export function createStyles(colors: ColorPalette) {
       borderTopColor: colors.line,
     },
     accessoryNav: { flexDirection: 'row', gap: 20 },
-    accessoryDoneText: { fontFamily: LedgerFonts.bodyBold, fontSize: 15, color: colors.income },
+    accessoryDoneText: { fontFamily: LedgerFonts.bodyBold, fontSize: 15, color: LedgerColors.income },
   });
 }

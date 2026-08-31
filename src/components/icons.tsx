@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
 
 export type IconProps = {
@@ -219,23 +218,50 @@ export function BackspaceIcon({ size, color = '#15130F' }: IconProps) {
   );
 }
 
-// Sourced from @expo/vector-icons (Ionicons) instead of hand-drawn paths.
-export function HousingIcon({ size = 20, color = '#15130F' }: IconProps) {
-  return <Ionicons name="home-outline" size={size} color={color} />;
+export function HousingIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path d="M3 10l7-6 7 6" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M5 9v7a1 1 0 001 1h8a1 1 0 001-1V9" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+      <Line x1="9" y1="17" x2="9" y2="13" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
 }
 
-export function HealthIcon({ size = 20, color = '#15130F' }: IconProps) {
-  return <Ionicons name="medkit-outline" size={size} color={color} />;
+export function HealthIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Circle cx="10" cy="10" r="7" stroke={color} strokeWidth={1.7} />
+      <Path d="M10 6.5v7M6.5 10h7" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
 }
 
-export function LeisureIcon({ size = 20, color = '#15130F' }: IconProps) {
-  return <Ionicons name="happy-outline" size={size} color={color} />;
+export function LeisureIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path d="M8 14V5l7-2v9" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx="6" cy="14" r="2" stroke={color} strokeWidth={1.7} />
+      <Circle cx="13" cy="12" r="2" stroke={color} strokeWidth={1.7} />
+    </Svg>
+  );
 }
 
-export function EventsIcon({ size = 20, color = '#15130F' }: IconProps) {
-  return <Ionicons name="gift-outline" size={size} color={color} />;
+export function EventsIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path d="M4 8h12v8a1 1 0 01-1 1H5a1 1 0 01-1-1V8z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 6h14v2a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+      <Line x1="10" y1="6" x2="10" y2="17" stroke={color} strokeWidth={1.7} />
+    </Svg>
+  );
 }
 
-export function FinanceIcon({ size = 20, color = '#15130F' }: IconProps) {
-  return <Ionicons name="wallet-outline" size={size} color={color} />;
+export function FinanceIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Circle cx="8" cy="12" r="5" stroke={color} strokeWidth={1.7} />
+      <Circle cx="12.5" cy="8" r="5" stroke={color} strokeWidth={1.7} />
+    </Svg>
+  );
 }

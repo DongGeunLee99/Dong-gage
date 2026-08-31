@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -68,7 +68,7 @@ export function createStyles(colors: ColorPalette) {
     budgetCatName: { flex: 1, fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.ink },
     budgetCatNums: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 12.5, color: colors.ink2 },
     budgetCatRemain: { fontFamily: LedgerFonts.body, fontSize: 11.5, color: colors.muted },
-    budgetCatRemainWarn: { color: colors.food, fontFamily: LedgerFonts.bodyBold },
+    budgetCatRemainWarn: { color: LedgerColors.food, fontFamily: LedgerFonts.bodyBold },
     donutWrap: { width: 180, height: 180, alignSelf: 'center', marginTop: 6, marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
     donutCenter: { position: 'absolute', alignItems: 'center', gap: 2 },
     donutTotal: { fontFamily: LedgerFonts.headingBold, fontSize: 19, color: colors.ink },

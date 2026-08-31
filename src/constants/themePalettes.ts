@@ -13,25 +13,6 @@ export type ColorPalette = {
   lineLighter: string;
   dashed: string;
   accent: string;
-  income: string;
-  expense: string;
-  food: string;
-  transport: string;
-  shopping: string;
-  fixed: string;
-  etc: string;
-  selectedDay: string;
-};
-
-const sharedSemantic = {
-  income: '#2A78D6',
-  expense: '#E34948',
-  food: '#EB6834',
-  transport: '#1BAF7A',
-  shopping: '#E87BA4',
-  fixed: '#4A3AA7',
-  etc: '#EDA100',
-  selectedDay: '#5AC0EF',
 };
 
 export const THEME_PALETTES: Record<ResolvedTheme, ColorPalette> = {
@@ -47,7 +28,6 @@ export const THEME_PALETTES: Record<ResolvedTheme, ColorPalette> = {
     lineLighter: '#F0EEE8',
     dashed: '#DAD5C9',
     accent: '#15130F',
-    ...sharedSemantic,
   },
   dark: {
     bg: '#15130F',
@@ -61,7 +41,6 @@ export const THEME_PALETTES: Record<ResolvedTheme, ColorPalette> = {
     lineLighter: '#252219',
     dashed: '#4A4638',
     accent: '#FAF9F7',
-    ...sharedSemantic,
   },
   purple: {
     bg: '#FAF8FC',
@@ -75,7 +54,6 @@ export const THEME_PALETTES: Record<ResolvedTheme, ColorPalette> = {
     lineLighter: '#F5F1FA',
     dashed: '#D9CCE8',
     accent: '#7C3AED',
-    ...sharedSemantic,
   },
   blue: {
     bg: '#F7FAFC',
@@ -89,6 +67,5 @@ export const THEME_PALETTES: Record<ResolvedTheme, ColorPalette> = {
     lineLighter: '#F1F6F9',
     dashed: '#CBD9E2',
     accent: '#1668B8',
-    ...sharedSemantic,
   },
 };

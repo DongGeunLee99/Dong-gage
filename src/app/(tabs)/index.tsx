@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ChevronLeftIcon, ChevronRightIcon, FilterIcon } from '@/components/icons';
+import { LedgerColors } from '@/constants/ledgerColors';
 import { formatFullDateWithWeekday, formatYearMonth, getWeekdayLabels } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
 import { useMonth } from '@/store/monthContext';
@@ -81,12 +82,12 @@ export default function CalendarScreen() {
         <View style={styles.summaryCard}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>{t('common.income')}</Text>
-            <Text style={[styles.summaryValue, { color: colors.income }]}>+{formatAmount(summary.income)}</Text>
+            <Text style={[styles.summaryValue, { color: LedgerColors.income }]}>+{formatAmount(summary.income)}</Text>
           </View>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>{t('common.expense')}</Text>
-            <Text style={[styles.summaryValue, { color: colors.expense }]}>-{formatAmount(summary.expense)}</Text>
+            <Text style={[styles.summaryValue, { color: LedgerColors.expense }]}>-{formatAmount(summary.expense)}</Text>
           </View>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
@@ -118,10 +119,10 @@ export default function CalendarScreen() {
                     <Text style={isToday ? styles.todayNum : styles.dayNum}>{cell.day}</Text>
                   </View>
                   {!!totals?.neg && (
-                    <Text style={[styles.dayAmt, { color: colors.expense }]}>-{formatCompactAmount(totals.neg)}</Text>
+                    <Text style={[styles.dayAmt, { color: LedgerColors.expense }]}>-{formatCompactAmount(totals.neg)}</Text>
                   )}
                   {!!totals?.pos && (
-                    <Text style={[styles.dayAmt, { color: colors.income }]}>+{formatCompactAmount(totals.pos)}</Text>
+                    <Text style={[styles.dayAmt, { color: LedgerColors.income }]}>+{formatCompactAmount(totals.pos)}</Text>
                   )}
                 </Pressable>
               );
@@ -152,7 +153,7 @@ export default function CalendarScreen() {
                 {!!t.memo && <Text style={styles.txMemo}>{t.memo}</Text>}
               </View>
               <View style={styles.txRight}>
-                <Text style={[styles.txAmt, { color: t.type === 'income' ? colors.income : colors.expense }]}>
+                <Text style={[styles.txAmt, { color: t.type === 'income' ? LedgerColors.income : LedgerColors.expense }]}>
                   {t.type === 'income' ? '+' : '-'}
                   {formatAmount(t.amount)}
                 </Text>

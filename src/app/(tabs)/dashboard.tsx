@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Circle, G, Svg } from 'react-native-svg';
 
 import { ChevronLeftIcon, ChevronRightIcon, TrendUpIcon } from '@/components/icons';
+import { LedgerColors } from '@/constants/ledgerColors';
 import { formatYearMonth } from '@/i18n/format';
 import { useBudgets } from '@/store/budgetsContext';
 import { useCategories } from '@/store/categoriesContext';
@@ -75,11 +76,11 @@ export default function DashboardScreen() {
           <View style={styles.summaryTop}>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>{t('dashboard.totalIncome')}</Text>
-              <Text style={[styles.summaryValue, { color: colors.income }]}>{formatAmount(summary.income)}</Text>
+              <Text style={[styles.summaryValue, { color: LedgerColors.income }]}>{formatAmount(summary.income)}</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>{t('dashboard.totalExpense')}</Text>
-              <Text style={[styles.summaryValue, { color: colors.expense }]}>{formatAmount(summary.expense)}</Text>
+              <Text style={[styles.summaryValue, { color: LedgerColors.expense }]}>{formatAmount(summary.expense)}</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryLabel}>{t('dashboard.netBalance')}</Text>
@@ -109,7 +110,7 @@ export default function DashboardScreen() {
               <View
                 style={[
                   styles.progressFg,
-                  { width: `${budgetPct}%`, backgroundColor: budgetPct >= 100 ? colors.expense : colors.ink },
+                  { width: `${budgetPct}%`, backgroundColor: budgetPct >= 100 ? LedgerColors.expense : colors.ink },
                 ]}
               />
             </View>
@@ -142,7 +143,7 @@ export default function DashboardScreen() {
                   </View>
                   <View style={[styles.progressBg, styles.progressBgSmall]}>
                     <View
-                      style={[styles.progressFg, { width: `${pct}%`, backgroundColor: pct >= 90 ? colors.expense : meta.color }]}
+                      style={[styles.progressFg, { width: `${pct}%`, backgroundColor: pct >= 90 ? LedgerColors.expense : meta.color }]}
                     />
                   </View>
                   <Text style={[styles.budgetCatRemain, pct >= 90 && styles.budgetCatRemainWarn]}>
@@ -216,11 +217,11 @@ export default function DashboardScreen() {
           <Text style={[styles.sectionTitle, { marginBottom: 10 }]}>{t('dashboard.sixMonthTrend')}</Text>
           <View style={styles.trendLegend}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: colors.income }]} />
+              <View style={[styles.legendDot, { backgroundColor: LedgerColors.income }]} />
               <Text style={styles.legendText}>{t('common.income')}</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: colors.expense }]} />
+              <View style={[styles.legendDot, { backgroundColor: LedgerColors.expense }]} />
               <Text style={styles.legendText}>{t('common.expense')}</Text>
             </View>
           </View>
@@ -228,8 +229,8 @@ export default function DashboardScreen() {
             {trend.map((m) => (
               <View key={m.label} style={styles.trendCol}>
                 <View style={styles.trendBars}>
-                  <View style={[styles.bar, { height: Math.max(2, m.incomeHeight), backgroundColor: colors.income }]} />
-                  <View style={[styles.bar, { height: Math.max(2, m.expenseHeight), backgroundColor: colors.expense }]} />
+                  <View style={[styles.bar, { height: Math.max(2, m.incomeHeight), backgroundColor: LedgerColors.income }]} />
+                  <View style={[styles.bar, { height: Math.max(2, m.expenseHeight), backgroundColor: LedgerColors.expense }]} />
                 </View>
                 <Text style={styles.trendMonth}>{m.label}</Text>
               </View>
