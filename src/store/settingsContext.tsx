@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { THEME_PALETTES, type ColorPalette, type ResolvedTheme, type ThemeMode } from '@/constants/theme-palettes';
+import { THEME_PALETTES, type ColorPalette, type ResolvedTheme, type ThemeMode } from '@/constants/themePalettes';
 import i18n, { type Language } from '@/i18n';
 
 const STORAGE_KEY = 'ledger_settings';

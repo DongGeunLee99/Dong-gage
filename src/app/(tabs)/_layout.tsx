@@ -3,13 +3,11 @@ import type { ParamListBase, TabNavigationState } from '@react-navigation/native
 import { withLayoutContext } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CalendarTabIcon, ChartTabIcon, ListTabIcon, SettingsTabIcon, WalletTabIcon } from '@/components/icons';
-import { LedgerFonts } from '@/constants/ledger-colors';
-import type { ColorPalette } from '@/constants/theme-palettes';
-import { useSettings } from '@/store/settings-context';
+import { useSettings } from '@/store/settingsContext';
+import { createStyles } from '@/styles/tabsLayoutStyles';
 
 const { Navigator } = createMaterialTopTabNavigator();
 
@@ -76,30 +74,4 @@ export default function TabsLayout() {
       />
     </MaterialTopTabs>
   );
-}
-
-function createStyles(colors: ColorPalette) {
-  return StyleSheet.create({
-    tabBar: {
-      backgroundColor: colors.card,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.lineLight,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    tabItem: {
-      paddingTop: 4,
-      paddingBottom: 8,
-    },
-    tabLabel: {
-      fontFamily: LedgerFonts.bodySemiBold,
-      fontSize: 10,
-      textTransform: 'none',
-      marginTop: 2,
-    },
-    tabIndicator: {
-      backgroundColor: colors.accent,
-      height: 2.5,
-    },
-  });
 }

@@ -10,7 +10,7 @@ import {
   type CategoryMeta,
 } from '@/constants/categories';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/store/auth-context';
+import { useAuth } from '@/store/authContext';
 
 type CategoryRow = {
   key: string;

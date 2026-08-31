@@ -1,15 +1,13 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ChevronLeftIcon, ChevronRightIcon, FilterIcon } from '@/components/icons';
-import { LedgerFonts } from '@/constants/ledger-colors';
-import type { ColorPalette } from '@/constants/theme-palettes';
 import { formatFullDateWithWeekday, formatYearMonth, getWeekdayLabels } from '@/i18n/format';
-import { useCategories } from '@/store/categories-context';
-import { useMonth } from '@/store/month-context';
-import { useSettings } from '@/store/settings-context';
+import { useCategories } from '@/store/categoriesContext';
+import { useMonth } from '@/store/monthContext';
+import { useSettings } from '@/store/settingsContext';
 import {
   TODAY,
   buildMonthGrid,
@@ -19,7 +17,8 @@ import {
   getMonthTransactions,
   monthSummary,
   useTransactions,
-} from '@/store/transactions-context';
+} from '@/store/transactionsContext';
+import { createStyles } from '@/styles/calendarStyles';
 
 // Adjust this to nudge the header up/down while tuning the top spacing.
 const TOP_OFFSET = 0;
@@ -168,136 +167,4 @@ export default function CalendarScreen() {
       </ScrollView>
     </View>
   );
-}
-
-function createStyles(colors: ColorPalette) {
-  return StyleSheet.create({
-    root: { flex: 1, backgroundColor: colors.bg },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      paddingTop: 12,
-      paddingBottom: 12,
-    },
-    monthNav: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    monthLabel: { fontFamily: LedgerFonts.headingBold, fontSize: 18, color: colors.ink },
-    todayBtn: {
-      marginLeft: 4,
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 8,
-      backgroundColor: colors.lineLight,
-    },
-    todayBtnDim: { backgroundColor: 'transparent' },
-    todayBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 12, color: colors.ink },
-    todayBtnTextDim: { color: colors.mutedLight },
-    filterBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: colors.line,
-      backgroundColor: colors.card,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    content: { paddingHorizontal: 20, paddingBottom: 32, gap: 14 },
-    summaryCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.card,
-      borderRadius: 18,
-      paddingVertical: 16,
-      paddingHorizontal: 8,
-      shadowColor: '#15130F',
-      shadowOpacity: 0.06,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 2,
-    },
-    summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
-    summaryLabel: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 11, color: colors.muted },
-    summaryValue: { fontFamily: LedgerFonts.headingBold, fontSize: 15, color: colors.ink },
-    summaryDivider: { width: 1, height: 28, backgroundColor: colors.line },
-    calCard: {
-      backgroundColor: colors.card,
-      borderRadius: 18,
-      paddingTop: 14,
-      paddingHorizontal: 10,
-      paddingBottom: 6,
-      shadowColor: '#15130F',
-      shadowOpacity: 0.06,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 2,
-    },
-    weekdayRow: {
-      flexDirection: 'row',
-      paddingBottom: 8,
-      marginBottom: 4,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.lineLight,
-    },
-    weekdayLabel: {
-      flex: 1,
-      textAlign: 'center',
-      fontFamily: LedgerFonts.bodyBold,
-      fontSize: 11,
-      color: colors.muted,
-    },
-    calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-    dayCell: {
-      width: `${100 / 7}%`,
-      height: 56,
-      alignItems: 'center',
-      paddingTop: 4,
-      gap: 3,
-      borderRadius: 10,
-    },
-    dayCellSelected: { borderWidth: 2, borderColor: colors.selectedDay, backgroundColor: colors.card },
-    dayNum: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 13, color: colors.ink },
-    todayBadge: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      backgroundColor: colors.ink,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    todayNum: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.bg },
-    dayAmt: { fontFamily: LedgerFonts.headingBold, fontSize: 8.5 },
-    previewTitle: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.ink2, paddingHorizontal: 2 },
-    emptyText: { fontFamily: LedgerFonts.body, fontSize: 13, color: colors.muted, paddingHorizontal: 2 },
-    txRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 12,
-      shadowColor: '#15130F',
-      shadowOpacity: 0.05,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 1,
-    },
-    catCircle: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
-    txMid: { flex: 1, gap: 2 },
-    txName: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 14, color: colors.ink },
-    txMemo: { fontFamily: LedgerFonts.body, fontSize: 12, color: colors.muted },
-    txRight: { alignItems: 'flex-end', gap: 2 },
-    txAmt: { fontFamily: LedgerFonts.headingBold, fontSize: 14 },
-    txTime: { fontFamily: LedgerFonts.body, fontSize: 11, color: colors.muted },
-    addRow: {
-      borderWidth: 1.5,
-      borderColor: colors.dashed,
-      borderStyle: 'dashed',
-      borderRadius: 16,
-      padding: 12,
-      alignItems: 'center',
-    },
-    addRowText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.muted },
-  });
 }

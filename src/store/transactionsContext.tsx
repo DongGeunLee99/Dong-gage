@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/store/auth-context';
+import { useAuth } from '@/store/authContext';
 
 export type TransactionType = 'expense' | 'income';
 

@@ -5,14 +5,14 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
-import { AuthProvider } from '@/store/auth-context';
-import { BudgetsProvider } from '@/store/budgets-context';
-import { CategoryPickerBridgeProvider } from '@/store/category-picker-bridge';
-import { CategoriesProvider } from '@/store/categories-context';
-import { FixedExpensesProvider } from '@/store/fixed-expenses-context';
-import { MonthProvider } from '@/store/month-context';
-import { SettingsProvider, useSettings } from '@/store/settings-context';
-import { TransactionsProvider } from '@/store/transactions-context';
+import { AuthProvider } from '@/store/authContext';
+import { BudgetsProvider } from '@/store/budgetsContext';
+import { CategoryPickerBridgeProvider } from '@/store/categoryPickerBridge';
+import { CategoriesProvider } from '@/store/categoriesContext';
+import { FixedExpensesProvider } from '@/store/fixedExpensesContext';
+import { MonthProvider } from '@/store/monthContext';
+import { SettingsProvider, useSettings } from '@/store/settingsContext';
+import { TransactionsProvider } from '@/store/transactionsContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,10 +30,10 @@ function RootLayoutNav() {
                   <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="category-picker" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="category-edit" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="budget-edit" options={{ presentation: 'modal' }} />
-                    <Stack.Screen name="fixed-expense-edit" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="categoryPicker" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="categoryEdit" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="budgetEdit" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="fixedExpenseEdit" options={{ presentation: 'modal' }} />
                   </Stack>
                 </FixedExpensesProvider>
               </BudgetsProvider>

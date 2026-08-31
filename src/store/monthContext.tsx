@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { TODAY } from '@/store/transactions-context';
+import { TODAY } from '@/store/transactionsContext';
 
 type MonthContextValue = {
   year: number;

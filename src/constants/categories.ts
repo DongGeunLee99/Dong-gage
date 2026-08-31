@@ -12,7 +12,7 @@ import {
   TransportIcon,
   TrendUpIcon,
 } from '@/components/icons';
-import { LedgerColors } from '@/constants/ledger-colors';
+import { LedgerColors } from '@/constants/ledgerColors';
 
 export type IconComponent = (props: IconProps) => React.JSX.Element;
 
