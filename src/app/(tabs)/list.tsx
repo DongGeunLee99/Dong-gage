@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { ChevronLeftIcon, ChevronRightIcon, FilterIcon } from '@/components/icons';
+import { ChevronLeftIcon, ChevronRightIcon, FilterIcon, SparkleIcon } from '@/components/icons';
 import { LedgerColors } from '@/constants/ledgerColors';
 import { formatFullDateWithWeekday, formatYearMonth } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
@@ -75,9 +75,14 @@ export default function ListScreen() {
             <Text style={[styles.todayBtnText, isOnToday && styles.todayBtnTextDim]}>{t('common.today')}</Text>
           </Pressable>
         </View>
-        <Pressable style={styles.iconBtn} hitSlop={8}>
-          <FilterIcon color={colors.ink} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/aiSettlement')}>
+            <SparkleIcon color={colors.ink} />
+          </Pressable>
+          <Pressable style={styles.iconBtn} hitSlop={8}>
+            <FilterIcon color={colors.ink} />
+          </Pressable>
+        </View>
       </View>
       <View style={styles.segmented}>
         {SEGMENTS.map((seg) => (

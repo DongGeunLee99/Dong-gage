@@ -30,6 +30,7 @@ function RootLayoutNav() {
                   <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="aiSettlement" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryPicker" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryEdit" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="budgetEdit" options={{ presentation: 'modal' }} />

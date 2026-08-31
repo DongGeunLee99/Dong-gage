@@ -98,6 +98,26 @@
     "deleteConfirmTitle": "카테고리를 삭제할까요?",
     "deleteConfirmBody": "이 카테고리로 저장된 과거 거래는 \"미분류\"로 표시됩니다."
   },
+  "aiSettlement": {
+    "title": "AI 정산",
+    "introText": "오늘 낸 거래 중에 정산할 거 골라줘!",
+    "pickTransactions": "정산할 거래",
+    "noTodayTransactions": "오늘 찍힌 지출이 없어요",
+    "participants": "정산할 사람",
+    "participantPlaceholder": "이름 입력",
+    "participantHint": "띄어쓰기로 여러 명을 한번에 추가할 수 있어요",
+    "whoWasThere": "누가 있었어?",
+    "extraHint": "체크한 사람에게만 이 금액이 추가로 나눠 부과돼요",
+    "extraItem": "예외 항목",
+    "extraLabelPlaceholder": "이름 (예: 술값)",
+    "extraAppliesTo": "누구한테 부과할까요?",
+    "addExtra": "예외 추가",
+    "calculate": "계산하기",
+    "resultTitle": "이렇게 걷으면 돼요",
+    "noResult": "받을 사람이 없어요",
+    "copyText": "복사하기",
+    "copied": "복사했어요!"
+  },
   "settings": {
     "language": "언어",
     "theme": "테마",

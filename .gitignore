@@ -36,6 +36,7 @@ yarn-error.*
 
 # personal data
 *.xlsx
+/개인첨부/
 
 # typescript
 *.tsbuildinfo

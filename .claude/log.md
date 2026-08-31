@@ -4,6 +4,101 @@
 
 ---
 
+## 2026-09-01 (7)
+
+### · AI 정산 — 포커스 시 수동 scrollTo로 키보드 위 여유 간격 추가 (재시도)
+
+> `contentInset` 방식이 안 먹혀서, 포커스된 입력창 기준으로 직접 `scrollTo`를 호출하는 방식으로 재시도.
+
+- `onScroll`로 현재 스크롤 Y좌표를 `scrollYRef`에 저장(`scrollEventThrottle={16}`)
+- 참가자 입력/예외 라벨/예외 금액 3개 `TextInput`에 `onFocus={handleInputFocus}` 연결 — `automaticallyAdjustKeyboardInsets`의 자동 스크롤이 끝나길 250ms 기다린 뒤, 현재 위치에서 20px 더 스크롤(iOS만)
+- 250ms 딜레이는 임의값 — 너무 빠르면 자동 스크롤과 겹쳐서 튈 수 있고, 너무 느리면 사용자가 이미 타이핑을 시작한 뒤에 화면이 움직여서 어색할 수 있음. 실기기 확인 필요
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-01 (6)
+
+### · AI 정산 — 키보드 위 여유 간격 20px 추가 (효과 없어서 되돌림)
+
+- 이중 보정 제거 후 딱 맞게 붙어서(간격 0) 답답하다고 해서, iOS `ScrollView`에 `contentInset={{ bottom: 20 }}` 추가해봤으나 사용자가 "변한 게 없다"고 확인 — `automaticallyAdjustKeyboardInsets`가 활성화된 상태에서는 수동 `contentInset`이 내부적으로 무시/덮어써지는 것으로 추정. 원상복구함. 간격을 늘리려면 다른 방법(예: 포커스 시 `scrollTo`로 수동 보정) 필요 — 다음에 요청 오면 그쪽으로 접근
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-01 (5)
+
+### · AI 정산 — iOS 키보드 과도 상승 수정 (이중 보정 제거)
+
+> "처음엔 적당했는데 automaticallyAdjustKeyboardInsets 추가하니 볼륨버튼 부근까지 올라간다"는 리포트. `KeyboardAvoidingView`(padding)와 `ScrollView`의 `automaticallyAdjustKeyboardInsets`가 iOS에서 동시에 키보드 높이만큼 보정하면서 두 배로 밀어올려진 것 — 수치 튜닝이 아니라 중복 로직 제거로 해결.
+
+- iOS는 `KeyboardAvoidingView`의 `behavior`를 `undefined`로(사실상 비활성화), `ScrollView`의 `automaticallyAdjustKeyboardInsets` 하나만 남김 — 포커스된 입력창만 정밀하게 스크롤
+- Android는 `automaticallyAdjustKeyboardInsets`가 없어서 `KeyboardAvoidingView behavior="height"` 그대로 유지
+- `keyboardVerticalOffset`은 더 이상 안 씀 (behavior 비활성화 시 무의미해서 제거)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-01 (4)
+
+### · AI 정산 — 키보드 스크롤 보완 + 계산 후 결과로 자동 스크롤
+
+> 사용자가 실기기에서 테스트하다 리포트한 이슈들. "JSX closing tag" / "Element type is invalid" 크래시는 확인해보니 현재 파일은 태그가 정상적으로 닫혀 있고 `tsc`/`expo export` 모두 통과 — 편집 도중 상태를 Metro가 캐시해서 보여준 것으로 추정, 코드 수정 없이 리로드 안내만 함. "JWT issued at future"로 카테고리/아이콘이 간헐적으로 안 불러와지는 문제는 원인(기기 시계 오차 추정)만 파악하고 재현이 간헐적이라 todo에 기록만 함(수정은 다음 세션에서 재현 조건 확인 후 진행).
+
+- `KeyboardAvoidingView`에 `keyboardVerticalOffset` 추가, Android `behavior`도 `undefined` → `'height'`로 명시(윈도우 리사이즈에만 기대지 않도록)
+- `ScrollView`에 `automaticallyAdjustKeyboardInsets` 추가 — iOS에서 포커스된 입력 필드를 키보드 위로 자동 스크롤
+- `계산하기` 버튼 클릭 후 결과 카드가 생기면 `useEffect`로 `scrollRef.current?.scrollToEnd()` 호출해서 자동으로 결과가 보이는 위치까지 스크롤
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-01 (3)
+
+### · AI 정산 예외 항목 UX 개선 + 키보드 가림 문제 수정
+
+- **× 텍스트가 곱셈처럼 보이는 문제** — 참가자 칩/예외 항목 삭제 버튼의 텍스트 `×`를 전부 아이콘(`CloseIcon`, 신규 추가)으로 교체, 작은 원형 배경(`chipRemoveBtn`)에 담아서 "삭제 버튼"임을 명확히 함
+- **예외 항목이 불친절한 문제** — 예외 항목을 각각 독립된 카드(`extraCard`)로 감싸고, 상단에 "예외 항목 N" 라벨 + 삭제 버튼, 하단에 "누구한테 부과할까요?" 서브라벨을 추가. 카드 위에는 "체크한 사람에게만 이 금액이 추가로 나눠 부과돼요" 설명문 추가
+- **추가 버튼이 텍스트 링크 같았던 문제** — "+ 예외 추가"를 `PlusIcon` + 텍스트가 든 pill 버튼으로 변경 (`addExtraBtn` 스타일 배경/패딩 추가)
+- **입력 중인 칸이 키보드에 가려지는 문제** — 화면 최상위를 `View` → `KeyboardAvoidingView`(iOS는 `padding`, Android는 기본 동작)로 교체. 이 앱에 `KeyboardAvoidingView` 패턴이 없어서 새로 도입 (기존 `modal.tsx`는 `InputAccessoryView`만 사용 — 키보드 위 액세서리 바이지 내용을 밀어올리진 않음)
+- 3개 언어 i18n 키 추가(`extraHint`/`extraItem`/`extraAppliesTo`), `extraLabelPlaceholder`/`addExtra` 문구도 카드 구조에 맞게 다듬음
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-01 (2)
+
+### · AI 정산 참가자 입력 — 스페이스로 여러 명 한번에 추가
+
+> "N분의 1 빠른 계산기" 아이디어를 제안받았으나, 사용자가 AI 정산 모달로 이미 충분하다고 판단해 드롭. 대신 참가자 입력 UX를 개선.
+
+- `handleAddParticipant`가 입력값을 공백(`\s+`) 기준으로 분리해 여러 이름을 한 번에 추가하도록 변경 (`"a b c d"` + 엔터 → 4명 개별 추가). 중복은 배치 내부/기존 목록 양쪽에서 제거
+- 참가자 입력 섹션에 안내 문구(`participantHint`) 추가, 3개 언어 번역 포함
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18) 통과.
+
+## 2026-09-01 (1)
+
+### · "AI 정산" 기능 설계 + 1차 구현 (구조화 폼 버전, 실제 LLM 미연동)
+
+> 사용자가 회식비 n분의 1 계산을 AI로 하고 싶다고 해서 여러 턴에 걸쳐 대화로 기능을 구체화. 최종 합의된 모델과 "일단 대충 만들어보자"는 요청으로 뼈대 구현까지 진행.
+
+**설계 과정에서 정리된 것**
+- 인풋: 완전 자유 텍스트가 아니라, 구조화된 폼(참가자 추가 + 차수별 참석자 체크 + 예외 항목)으로 결정. 이유: 돈 계산은 LLM이 직접 암산하면 위험하고, 애매한 자연어 파싱(인원수에 결제자 포함 여부 등)도 실수 여지가 큼
+- 확인 UX: AI가 추정한 거래 목록을 사용자가 리스트에서 체크/해제하며 확인하는 방식. 톤은 사용자가 공유한 참고 스크린샷("~할까요?" 식 캐주얼한 질문형)을 참고하기로 함
+- 출력: 도넛차트(금액 시각화) + 복사 가능한 정산 문구, 둘 다 제공하기로 결정
+- 위치: 리스트 탭에 진입 버튼(필터 아이콘 옆), 화면은 기존 모달들과 같은 전체화면 모달 패턴 재사용
+- 아키텍처 원칙: "LLM은 해석만, 계산은 결정론적 코드로" — 나중에 실제 자연어 입력을 붙일 때도 이번에 만든 데이터 구조(`SettlementRound`/`SettlementExtra`)를 그대로 채우기만 하면 되게 설계
+
+**구현**
+- `src/lib/settlement.ts` (신규) — `calculateSettlement()`: 차수별 총액에서 예외 항목을 빼고 참석자 수로 나눈 기본 분담금 + 예외 항목은 지정된 인원끼리만 나눔. `buildSettlementMessage()`: 캐주얼 톤 정산 문구 생성
+- `src/app/aiSettlement.tsx` (신규, `AiSettlementModal`) — 오늘자 지출 거래 선택 → 참가자 추가(카테고리 소분류 추가와 같은 칩 UI 재사용) → 차수별 참석자/예외 체크 → 계산 → 결과(도넛차트는 `dashboard.tsx`의 기존 SVG 패턴 재사용 + 사람별 순위 리스트 + 복사 버튼)
+- `expo-clipboard` 추가 (`npx expo install`로 SDK 호환 버전 설치)
+- 아이콘 2개 추가: `SparkleIcon`(진입 버튼), `CopyIcon`(복사 버튼) — 기존 손그림 라인아트 스타일 유지
+- `src/app/(tabs)/list.tsx` — 헤더에 정산 진입 버튼 추가(필터 아이콘 옆), `listStyles.ts`에 `headerActions` 행 스타일 추가
+- `src/app/_layout.tsx`에 `aiSettlement` 모달 라우트 등록
+- `i18n` 3개 언어(ko/en/ja) 전부에 `aiSettlement` 네임스페이스 번역 추가
+
+**의도적으로 미룬 것 (todo에 기록)**
+- 실제 자연어 입력 → AI가 폼을 채워주는 부분은 API 키/Edge Function 설정이 필요해서 이번엔 안 함. 지금은 사람이 직접 폼을 채움
+- 거래 검색은 "오늘"로 한정 (`TODAY` 상수 기준), 날짜 걸치는 정산은 아직 미지원
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
 ## 2026-08-31 (12)
 
 ### · 색상 정의를 `LedgerColors` 하나로 완전 통합

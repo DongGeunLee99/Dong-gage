@@ -98,6 +98,26 @@
     "deleteConfirmTitle": "Delete this category?",
     "deleteConfirmBody": "Past transactions with this category will show as \"Uncategorized\"."
   },
+  "aiSettlement": {
+    "title": "AI Settlement",
+    "introText": "Pick which of today's expenses you want to split.",
+    "pickTransactions": "Transactions to split",
+    "noTodayTransactions": "No expenses recorded today",
+    "participants": "People to split with",
+    "participantPlaceholder": "Enter a name",
+    "participantHint": "Separate multiple names with spaces to add them all at once",
+    "whoWasThere": "Who was there?",
+    "extraHint": "This amount is split only among the people you check below, added on top of their share",
+    "extraItem": "Extra",
+    "extraLabelPlaceholder": "Name (e.g. drinks)",
+    "extraAppliesTo": "Who does this apply to?",
+    "addExtra": "Add extra",
+    "calculate": "Calculate",
+    "resultTitle": "Here's what to collect",
+    "noResult": "No one owes anything",
+    "copyText": "Copy",
+    "copied": "Copied!"
+  },
   "settings": {
     "language": "Language",
     "theme": "Theme",

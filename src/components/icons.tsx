@@ -200,6 +200,37 @@ export function TargetIcon({ size, color = '#fff' }: IconProps) {
   );
 }
 
+export function SparkleIcon({ size, color = '#15130F' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path
+        d="M10 3l1.7 5.3L17 10l-5.3 1.7L10 17l-1.7-5.3L3 10l5.3-1.7L10 3z"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ size, color = '#15130F' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path d="M5 5l10 10M15 5L5 15" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function CopyIcon({ size, color = '#15130F' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Rect x="7" y="7" width="10" height="10" rx="2" stroke={color} strokeWidth={1.6} />
+      <Path d="M13 7V5a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function PencilIcon({ size, color = '#9B9790' }: IconProps) {
   return (
     <Svg {...base(size)} fill="none">

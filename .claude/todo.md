@@ -6,6 +6,9 @@
 
 ## 미완료
 
+- [ ] **카테고리 로딩 간헐적 실패 (`PGRST303: JWT issued at future`)** — 가끔 `categoriesContext`의 Supabase fetch가 실패하면서 카테고리 아이콘이 안 보이는 현상 발생. Supabase JWT의 `iat`(발급 시각)이 서버 기준으로 미래라 거부되는 것 — 기기 시계 오차 또는 세션 토큰 갱신 타이밍 문제로 추정. 간헐적이라 재현 조건부터 특정 필요. 발생 시 `supabase.auth.refreshSession()`으로 재시도하는 로직 추가하는 방안 검토
+- [ ] **AI 정산 — 실제 LLM 연동** — 지금은 자연어 입력 없이 구조화된 폼(참가자 추가 + 차수별 참석자/예외 체크)으로만 동작. 자연어로 "1차 4명 12만원, 2명 술 안마심..." 던지면 AI가 해당 폼 값을 채워주는 단계는 Supabase Edge Function + LLM API 키 설정이 필요해서 별도 작업. 데이터 모델(`src/lib/settlement.ts`의 `SettlementRound`/`SettlementExtra`)은 이미 이 확장을 염두에 두고 설계함 — AI는 이 구조체만 채우면 되고 계산 로직은 그대로 재사용
+- [ ] **AI 정산 — 거래 검색 범위 확장** — 지금은 "오늘" 거래만 후보로 보여줌(`TODAY` 상수 기준). 어제 야근 회식처럼 날짜가 걸치는 경우나 여러 날에 걸친 정산은 아직 처리 못 함
 - [ ] **iOS Icon Composer(`assets/expo.icon`) 재도입 검토** — SDK 54의 새 iOS 아이콘 포맷(레이어/그라데이션/틴트 지원)인데, `icon.json` 스키마가 공식 문서에 상세히 설명되어 있지 않고 보통 Xcode의 Icon Composer 앱으로 만든다. 지금은 리스크를 피하려고 `ios.icon`을 평범한 PNG(`icon.png`)로 되돌려둠. 나중에 iOS 전용 다이나믹 아이콘이 필요해지면 Icon Composer 앱으로 직접 만들어서 교체
 - [ ] **웹(Expo web) SSR 크래시** — `npx expo start --web`/`expo export -p web` 실행 시 서버사이드 렌더링 단계에서 `ReferenceError: window is not defined` (Supabase `auth-js`가 세션 복구 시 `AsyncStorage.getItem`을 호출하는데, `app.json`의 `web.output: "static"`이 라우트를 Node 환경에서 프리렌더링하면서 발생). 웹 배포 계획이 생기면 해결 필요 — `supabase.ts`의 `AsyncStorage` storage를 SSR 환경에서 no-op으로 우회하거나, 해당 라우트를 client-only로 전환
 - [ ] **"이체(계좌간 전환)" 거래 처리 방식 결정** — 8월 데이터 임포트 시 88건 전부 제외함. 문자 자동입력 붙일 때 다시 설계하기로 함

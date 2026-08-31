@@ -98,6 +98,26 @@
     "deleteConfirmTitle": "このカテゴリを削除しますか？",
     "deleteConfirmBody": "このカテゴリの過去の取引は「未分類」と表示されます。"
   },
+  "aiSettlement": {
+    "title": "AI精算",
+    "introText": "今日の支出から精算したいものを選んでね",
+    "pickTransactions": "精算する取引",
+    "noTodayTransactions": "今日の支出はありません",
+    "participants": "精算する相手",
+    "participantPlaceholder": "名前を入力",
+    "participantHint": "スペースで区切ると複数人を一度に追加できます",
+    "whoWasThere": "誰がいた？",
+    "extraHint": "この金額はチェックした人だけに追加で割り当てられます",
+    "extraItem": "追加項目",
+    "extraLabelPlaceholder": "名前（例: お酒代）",
+    "extraAppliesTo": "誰に割り当てる？",
+    "addExtra": "追加項目を足す",
+    "calculate": "計算する",
+    "resultTitle": "この金額を集めればOK",
+    "noResult": "該当者がいません",
+    "copyText": "コピー",
+    "copied": "コピーしました！"
+  },
   "settings": {
     "language": "言語",
     "theme": "テーマ",

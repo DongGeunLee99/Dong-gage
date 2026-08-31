@@ -14,6 +14,7 @@ export function createStyles(colors: ColorPalette) {
       paddingTop: 12,
       paddingBottom: 12,
     },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     iconBtn: {
       width: 32,
       height: 32,
