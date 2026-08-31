@@ -1,0 +1,118 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "add": "Add",
+    "delete": "Delete",
+    "today": "Today",
+    "unspecified": "Unspecified",
+    "income": "Income",
+    "expense": "Expense",
+    "won": "KRW"
+  },
+  "tabs": {
+    "calendar": "Calendar",
+    "list": "List",
+    "dashboard": "Dashboard",
+    "management": "Manage",
+    "settings": "Settings"
+  },
+  "calendar": {
+    "balance": "Balance",
+    "noTransactions": "No transactions on this day",
+    "addTransaction": "+ Add transaction"
+  },
+  "list": {
+    "segmentAll": "All",
+    "noTransactionsMonth": "No transactions this month"
+  },
+  "dashboard": {
+    "totalIncome": "Total Income",
+    "totalExpense": "Total Expense",
+    "netBalance": "Net Balance",
+    "categoriesActive": "Transactions across {{count}} categories this month",
+    "budgetTitle": "This Month's Budget",
+    "budgetCaption": "· excludes items marked out of budget",
+    "budgetRemainPrefix": "Remaining",
+    "budgetUsedSuffix": "% used",
+    "budgetOverBy": "over budget",
+    "categorySpending": "Spending by Category",
+    "noExpensesMonth": "No expenses this month",
+    "thisMonthExpense": "This month's spending",
+    "sixMonthTrend": "Last 6 Months"
+  },
+  "management": {
+    "budgetSetting": "Budget",
+    "addCategoryLink": "+ Add category",
+    "fixedExpense": "Fixed Expenses",
+    "addLink": "+ Add",
+    "category": "Categories",
+    "paused": "· Paused",
+    "monthlyGoal": "This month's goal",
+    "budgetCaption": "Excludes items marked out of budget",
+    "monthlyDayLabel": "Day {{day}} each month"
+  },
+  "modal": {
+    "titleAdd": "Add Transaction",
+    "titleEdit": "Edit Transaction",
+    "date": "Date",
+    "memoPlaceholder": "Enter a merchant name",
+    "notePlaceholder": "Add a note or #tag",
+    "excludeFromBudget": "Exclude from budget",
+    "deleteTransaction": "Delete Transaction",
+    "deleteConfirmTitle": "Delete this transaction?",
+    "deleteConfirmBody": "This cannot be undone."
+  },
+  "categoryPicker": {
+    "title": "Choose Category"
+  },
+  "budgetEdit": {
+    "titleOverall": "Edit Monthly Goal",
+    "titleCategory": "Edit Budget",
+    "titleNew": "Add Category Budget",
+    "chooseCategory": "Choose Category",
+    "noCategoriesLeft": "No more categories to add",
+    "deleteBudget": "Delete Budget",
+    "deleteConfirmTitle": "Delete this budget?",
+    "deleteConfirmBody": "This cannot be undone."
+  },
+  "fixedExpenseEdit": {
+    "titleAdd": "Add Fixed Expense",
+    "titleEdit": "Edit Fixed Expense",
+    "namePlaceholder": "Enter a name",
+    "dayOfMonth": "Day of month",
+    "deleteFixedExpense": "Delete Fixed Expense",
+    "deleteConfirmTitle": "Delete this fixed expense?",
+    "deleteConfirmBody": "This cannot be undone."
+  },
+  "categoryEdit": {
+    "titleAdd": "Add Category",
+    "titleEdit": "Edit Category",
+    "namePlaceholder": "Category name",
+    "icon": "Icon",
+    "color": "Color",
+    "subcategory": "Subcategories",
+    "subcategoryPlaceholder": "Subcategory name",
+    "deleteCategory": "Delete Category",
+    "deleteConfirmTitle": "Delete this category?",
+    "deleteConfirmBody": "Past transactions with this category will show as \"Uncategorized\"."
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "account": "Account",
+    "login": "Log In",
+    "logout": "Log Out",
+    "loginWithKakao": "Log in with Kakao",
+    "loggingIn": "Logging in...",
+    "loginFailed": "Login failed",
+    "kakaoUser": "Kakao user",
+    "notLoggedIn": "You're not logged in",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themePurple": "Purple",
+    "themeBlue": "Blue"
+  }
+}

@@ -1,0 +1,118 @@
+{
+  "common": {
+    "cancel": "キャンセル",
+    "save": "保存",
+    "done": "完了",
+    "add": "追加",
+    "delete": "削除",
+    "today": "今日",
+    "unspecified": "未指定",
+    "income": "収入",
+    "expense": "支出",
+    "won": "ウォン"
+  },
+  "tabs": {
+    "calendar": "カレンダー",
+    "list": "リスト",
+    "dashboard": "ダッシュボード",
+    "management": "管理",
+    "settings": "設定"
+  },
+  "calendar": {
+    "balance": "残高",
+    "noTransactions": "この日の取引はありません",
+    "addTransaction": "+ 取引を追加"
+  },
+  "list": {
+    "segmentAll": "すべて",
+    "noTransactionsMonth": "今月の取引はありません"
+  },
+  "dashboard": {
+    "totalIncome": "総収入",
+    "totalExpense": "総支出",
+    "netBalance": "純残高",
+    "categoriesActive": "今月は{{count}}個のカテゴリで取引がありました",
+    "budgetTitle": "今月の予算",
+    "budgetCaption": "・予算除外項目は含まれません",
+    "budgetRemainPrefix": "残り",
+    "budgetUsedSuffix": "% 使用",
+    "budgetOverBy": "ウォン予算超過",
+    "categorySpending": "カテゴリ別支出",
+    "noExpensesMonth": "今月の支出はありません",
+    "thisMonthExpense": "今月の支出",
+    "sixMonthTrend": "過去6ヶ月の推移"
+  },
+  "management": {
+    "budgetSetting": "予算設定",
+    "addCategoryLink": "+ カテゴリを追加",
+    "fixedExpense": "固定費",
+    "addLink": "+ 追加",
+    "category": "カテゴリ",
+    "paused": "・一時停止中",
+    "monthlyGoal": "今月の目標",
+    "budgetCaption": "予算除外項目は含まれません",
+    "monthlyDayLabel": "毎月{{day}}日"
+  },
+  "modal": {
+    "titleAdd": "取引を追加",
+    "titleEdit": "取引を編集",
+    "date": "日付",
+    "memoPlaceholder": "店舗名を入力してください",
+    "notePlaceholder": "メモや#タグを自由に入力してください",
+    "excludeFromBudget": "予算から除外",
+    "deleteTransaction": "取引を削除",
+    "deleteConfirmTitle": "この取引を削除しますか？",
+    "deleteConfirmBody": "削除すると元に戻せません。"
+  },
+  "categoryPicker": {
+    "title": "カテゴリを選択"
+  },
+  "budgetEdit": {
+    "titleOverall": "今月の目標を編集",
+    "titleCategory": "予算を編集",
+    "titleNew": "カテゴリ予算を追加",
+    "chooseCategory": "カテゴリを選択",
+    "noCategoriesLeft": "追加できるカテゴリがありません",
+    "deleteBudget": "予算を削除",
+    "deleteConfirmTitle": "この予算を削除しますか？",
+    "deleteConfirmBody": "削除すると元に戻せません。"
+  },
+  "fixedExpenseEdit": {
+    "titleAdd": "固定費を追加",
+    "titleEdit": "固定費を編集",
+    "namePlaceholder": "名前を入力してください",
+    "dayOfMonth": "毎月の支払日",
+    "deleteFixedExpense": "固定費を削除",
+    "deleteConfirmTitle": "この固定費を削除しますか？",
+    "deleteConfirmBody": "削除すると元に戻せません。"
+  },
+  "categoryEdit": {
+    "titleAdd": "カテゴリを追加",
+    "titleEdit": "カテゴリを編集",
+    "namePlaceholder": "カテゴリ名",
+    "icon": "アイコン",
+    "color": "カラー",
+    "subcategory": "サブカテゴリ",
+    "subcategoryPlaceholder": "サブカテゴリ名",
+    "deleteCategory": "カテゴリを削除",
+    "deleteConfirmTitle": "このカテゴリを削除しますか？",
+    "deleteConfirmBody": "このカテゴリの過去の取引は「未分類」と表示されます。"
+  },
+  "settings": {
+    "language": "言語",
+    "theme": "テーマ",
+    "account": "アカウント",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "loginWithKakao": "Kakaoでログイン",
+    "loggingIn": "ログイン中...",
+    "loginFailed": "ログインに失敗しました",
+    "kakaoUser": "Kakaoユーザー",
+    "notLoggedIn": "ログインしていません",
+    "themeSystem": "システム",
+    "themeLight": "ライト",
+    "themeDark": "ダーク",
+    "themePurple": "パープル",
+    "themeBlue": "ブルー"
+  }
+}

@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#EDEAE3;}
+  .app{width:390px;height:844px;position:relative;overflow:hidden;background:#FAF9F7;font-family:'Manrope',system-ui,sans-serif;color:#15130F;display:flex;flex-direction:column;}
+  .num{font-family:'Space Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;}
+  a{color:#2A78D6;} a:hover{color:#1c5cab;}
+  .safe-top{height:54px;flex-shrink:0;}
+  .title-row{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px 20px;}
+  .title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:24px;font-weight:700;}
+  .month-nav{flex-shrink:0;display:flex;align-items:center;gap:8px;background:#EFECE5;border-radius:10px;padding:6px 10px;}
+  .month-label{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:600;font-size:13px;}
+  .chev{color:#9B9790;display:flex;}
+  .content{flex:1;min-height:0;overflow-y:auto;padding:0 20px 20px 20px;display:flex;flex-direction:column;gap:14px;}
+  .card{background:#fff;border-radius:18px;box-shadow:0 1px 2px rgba(21,19,15,0.06),0 8px 20px rgba(21,19,15,0.05);padding:18px;}
+  .summary-top{display:flex;justify-content:space-between;}
+  .summary-item{display:flex;flex-direction:column;gap:4px;}
+  .s-label{font-size:11.5px;color:#9B9790;font-weight:600;}
+  .s-value{font-size:16px;font-weight:700;}
+  .s-value.income{color:#2A78D6;} .s-value.expense{color:#E34948;}
+  .delta-row{margin-top:14px;padding-top:12px;border-top:1px solid #EFECE5;display:flex;align-items:center;gap:6px;}
+  .delta-row svg{color:#006300;}
+  .delta-text{font-size:12.5px;color:#6B675F;}
+  .delta-text b{color:#006300;font-weight:700;}
+  .section-title{font-size:14px;font-weight:700;padding:0 2px;}
+  .donut-wrap{position:relative;width:180px;height:180px;margin:6px auto 4px auto;}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .donut-total{font-size:19px;font-weight:700;}
+  .donut-sub{font-size:11px;color:#9B9790;}
+  .rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;}
+  .rank-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .rank-name{font-size:13px;font-weight:600;width:52px;flex-shrink:0;}
+  .rank-bar-bg{flex:1;height:7px;border-radius:4px;background:#F0EEE8;overflow:hidden;}
+  .rank-bar-fg{height:100%;border-radius:4px;}
+  .rank-amt{font-size:12.5px;font-weight:700;color:#6B675F;width:64px;text-align:right;flex-shrink:0;}
+  .budget-caption{font-weight:600;color:#9B9790;font-size:12px;}
+  .budget-overall-row{display:flex;align-items:baseline;gap:4px;}
+  .budget-used{font-size:20px;font-weight:700;}
+  .budget-slash{font-size:14px;color:#9B9790;}
+  .budget-goal{font-size:14px;color:#9B9790;font-weight:600;}
+  .progress-bg{height:8px;border-radius:4px;background:#F0EEE8;overflow:hidden;margin:9px 0 7px 0;}
+  .progress-bg.small{height:6px;margin:0 0 6px 0;}
+  .progress-fg{height:100%;border-radius:4px;}
+  .budget-remain{font-size:12px;color:#6B675F;}
+  .budget-remain b{color:#15130F;font-weight:700;}
+  .budget-cat-list{display:flex;flex-direction:column;gap:14px;margin-top:16px;padding-top:14px;border-top:1px solid #EFECE5;}
+  .budget-cat-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .budget-cat-name{font-size:13px;font-weight:700;flex:1;}
+  .budget-cat-nums{font-size:12.5px;color:#6B675F;font-weight:600;}
+  .budget-cat-remain{font-size:11.5px;color:#9B9790;}
+  .budget-cat-remain.warn{color:#EB6834;font-weight:700;}
+  .trend-legend{display:flex;gap:16px;padding:0 2px 8px 2px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#6B675F;font-weight:600;}
+  .legend-dot{width:8px;height:8px;border-radius:2px;}
+  .trend-chart{display:flex;align-items:flex-end;justify-content:space-between;height:100px;padding:0 2px;}
+  .trend-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .trend-bars{display:flex;align-items:flex-end;gap:3px;height:90px;}
+  .bar{width:9px;border-radius:3px 3px 1px 1px;}
+  .trend-month{font-size:10.5px;color:#9B9790;font-weight:600;}
+  .tabbar{flex-shrink:0;display:flex;border-top:1px solid #EFECE5;background:#fff;padding-top:8px;padding-bottom:30px;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#B4B0A7;}
+  .tab.active{color:#15130F;}
+  .tab-label{font-size:10px;font-weight:600;}
+</style>
+</helmet>
+<div class="app">
+  <div class="safe-top"></div>
+  <div class="title-row">
+    <span class="title">통계</span>
+    <div class="month-nav">
+      <span class="chev"><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4l-6 6 6 6"/></svg></span>
+      <span class="month-label">2026년 8월</span>
+      <span class="chev"><svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4l6 6-6 6"/></svg></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <div class="summary-top">
+        <div class="summary-item"><span class="s-label">총수입</span><span class="s-value income num">2,500,000</span></div>
+        <div class="summary-item"><span class="s-label">총지출</span><span class="s-value expense num">850,000</span></div>
+        <div class="summary-item"><span class="s-label">순잔액</span><span class="s-value num">1,650,000</span></div>
+      </div>
+      <div class="delta-row">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l4-4 3 3 5-5"/><path d="M12 4h4v4"/></svg>
+        <span class="delta-text">지난달 대비 지출 <b>12% 감소</b></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">이번 달 예산 <span class="budget-caption">· 고정지출 제외</span></div>
+      <div style="margin-top:12px;">
+        <div class="budget-overall-row"><span class="budget-used num">467,500</span><span class="budget-slash">/</span><span class="budget-goal num">1,000,000원</span></div>
+        <div class="progress-bg"><div class="progress-fg" style="width:47%;background:#15130F"></div></div>
+        <div class="budget-remain">남음 <b class="num">532,500원</b> · 47% 사용</div>
+      </div>
+      <div class="budget-cat-list">
+        <div class="budget-cat-row">
+          <div class="budget-cat-head"><span class="rank-dot" style="background:#EB6834"></span><span class="budget-cat-name">식비</span><span class="budget-cat-nums num">297,500 / 800,000</span></div>
+          <div class="progress-bg small"><div class="progress-fg" style="width:37%;background:#EB6834"></div></div>
+          <div class="budget-cat-remain">남음 502,500원 · 37% 사용</div>
+        </div>
+        <div class="budget-cat-row">
+          <div class="budget-cat-head"><span class="rank-dot" style="background:#1BAF7A"></span><span class="budget-cat-name">교통(주유)</span><span class="budget-cat-nums num">170,000 / 200,000</span></div>
+          <div class="progress-bg small"><div class="progress-fg" style="width:85%;background:#1BAF7A"></div></div>
+          <div class="budget-cat-remain warn">남음 30,000원 · 곧 예산 초과</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">카테고리별 지출</div>
+      <div class="donut-wrap">
+        <svg width="180" height="180" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="70" fill="none" stroke="#F0EEE8" stroke-width="26"/>
+          <g transform="rotate(-90 100 100)">
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#EB6834" stroke-width="26" stroke-dasharray="153.94 285.88" stroke-dashoffset="0"/>
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#1BAF7A" stroke-width="26" stroke-dasharray="87.96 351.86" stroke-dashoffset="-153.94"/>
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#E87BA4" stroke-width="26" stroke-dasharray="79.17 360.65" stroke-dashoffset="-241.90"/>
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#4A3AA7" stroke-width="26" stroke-dasharray="87.96 351.86" stroke-dashoffset="-321.07"/>
+            <circle cx="100" cy="100" r="70" fill="none" stroke="#EDA100" stroke-width="26" stroke-dasharray="30.79 409.03" stroke-dashoffset="-409.03"/>
+          </g>
+        </svg>
+        <div class="donut-center"><span class="donut-total num">850,000</span><span class="donut-sub">이번 달 지출</span></div>
+      </div>
+
+      <div class="rank-row"><span class="rank-dot" style="background:#EB6834"></span><span class="rank-name">식비</span><div class="rank-bar-bg"><div class="rank-bar-fg" style="width:35%;background:#EB6834"></div></div><span class="rank-amt num">297,500 · 35%</span></div>
+      <div class="rank-row"><span class="rank-dot" style="background:#4A3AA7"></span><span class="rank-name">고정비</span><div class="rank-bar-bg"><div class="rank-bar-fg" style="width:20%;background:#4A3AA7"></div></div><span class="rank-amt num">170,000 · 20%</span></div>
+      <div class="rank-row"><span class="rank-dot" style="background:#1BAF7A"></span><span class="rank-name">교통</span><div class="rank-bar-bg"><div class="rank-bar-fg" style="width:20%;background:#1BAF7A"></div></div><span class="rank-amt num">170,000 · 20%</span></div>
+      <div class="rank-row"><span class="rank-dot" style="background:#E87BA4"></span><span class="rank-name">쇼핑</span><div class="rank-bar-bg"><div class="rank-bar-fg" style="width:18%;background:#E87BA4"></div></div><span class="rank-amt num">153,000 · 18%</span></div>
+      <div class="rank-row"><span class="rank-dot" style="background:#EDA100"></span><span class="rank-name">기타</span><div class="rank-bar-bg"><div class="rank-bar-fg" style="width:7%;background:#EDA100"></div></div><span class="rank-amt num">59,500 · 7%</span></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" style="margin-bottom:10px;">최근 6개월 추이</div>
+      <div class="trend-legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#2A78D6"></span>수입</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#E34948"></span>지출</div>
+      </div>
+      <div class="trend-chart">
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:84px;background:#2A78D6"></div><div class="bar" style="height:63px;background:#E34948"></div></div><span class="trend-month">3월</span></div>
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:84px;background:#2A78D6"></div><div class="bar" style="height:58px;background:#E34948"></div></div><span class="trend-month">4월</span></div>
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:78px;background:#2A78D6"></div><div class="bar" style="height:69px;background:#E34948"></div></div><span class="trend-month">5월</span></div>
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:84px;background:#2A78D6"></div><div class="bar" style="height:62px;background:#E34948"></div></div><span class="trend-month">6월</span></div>
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:90px;background:#2A78D6"></div><div class="bar" style="height:66px;background:#E34948"></div></div><span class="trend-month">7월</span></div>
+        <div class="trend-col"><div class="trend-bars"><div class="bar" style="height:84px;background:#2A78D6"></div><div class="bar" style="height:57px;background:#E34948"></div></div><span class="trend-month">8월</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2.5"/><line x1="3" y1="8.5" x2="17" y2="8.5"/><line x1="7" y1="2.5" x2="7" y2="6"/><line x1="13" y1="2.5" x2="13" y2="6"/></svg><span class="tab-label">캘린더</span></div>
+    <div class="tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="4" cy="6" r="1.1" fill="currentColor" stroke="none"/><line x1="8" y1="6" x2="17" y2="6"/><circle cx="4" cy="10" r="1.1" fill="currentColor" stroke="none"/><line x1="8" y1="10" x2="17" y2="10"/><circle cx="4" cy="14" r="1.1" fill="currentColor" stroke="none"/><line x1="8" y1="14" x2="17" y2="14"/></svg><span class="tab-label">리스트</span></div>
+    <div class="tab active"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><line x1="5" y1="15" x2="5" y2="11"/><line x1="10" y1="15" x2="10" y2="7"/><line x1="15" y1="15" x2="15" y2="4"/></svg><span class="tab-label">대시보드</span></div>
+    <div class="tab"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8z"/><circle cx="13.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg><span class="tab-label">관리</span></div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

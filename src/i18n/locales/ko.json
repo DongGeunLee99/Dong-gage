@@ -1,0 +1,118 @@
+{
+  "common": {
+    "cancel": "취소",
+    "save": "저장",
+    "done": "완료",
+    "add": "추가",
+    "delete": "삭제",
+    "today": "오늘",
+    "unspecified": "미지정",
+    "income": "수입",
+    "expense": "지출",
+    "won": "원"
+  },
+  "tabs": {
+    "calendar": "캘린더",
+    "list": "리스트",
+    "dashboard": "대시보드",
+    "management": "관리",
+    "settings": "설정"
+  },
+  "calendar": {
+    "balance": "잔액",
+    "noTransactions": "이 날의 거래 내역이 없습니다",
+    "addTransaction": "+ 새 거래 추가"
+  },
+  "list": {
+    "segmentAll": "전체",
+    "noTransactionsMonth": "이 달의 거래 내역이 없습니다"
+  },
+  "dashboard": {
+    "totalIncome": "총수입",
+    "totalExpense": "총지출",
+    "netBalance": "순잔액",
+    "categoriesActive": "이번 달 거래 {{count}}개 카테고리에서 발생",
+    "budgetTitle": "이번 달 예산",
+    "budgetCaption": "· 예산 제외 항목 미포함",
+    "budgetRemainPrefix": "남음",
+    "budgetUsedSuffix": "% 사용",
+    "budgetOverBy": "원 예산 초과",
+    "categorySpending": "카테고리별 지출",
+    "noExpensesMonth": "이번 달 지출 내역이 없습니다",
+    "thisMonthExpense": "이번 달 지출",
+    "sixMonthTrend": "최근 6개월 추이"
+  },
+  "management": {
+    "budgetSetting": "예산 설정",
+    "addCategoryLink": "+ 카테고리 추가",
+    "fixedExpense": "고정 지출",
+    "addLink": "+ 추가",
+    "category": "카테고리",
+    "paused": "· 일시중지",
+    "monthlyGoal": "이번 달 목표",
+    "budgetCaption": "예산 제외 항목 미포함",
+    "monthlyDayLabel": "매월 {{day}}일"
+  },
+  "modal": {
+    "titleAdd": "거래 추가",
+    "titleEdit": "거래 수정",
+    "date": "날짜",
+    "memoPlaceholder": "상호명을 입력해주세요",
+    "notePlaceholder": "메모나 #태그를 자유롭게 입력하세요",
+    "excludeFromBudget": "예산에서 제외",
+    "deleteTransaction": "거래 삭제",
+    "deleteConfirmTitle": "거래를 삭제할까요?",
+    "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다."
+  },
+  "categoryPicker": {
+    "title": "카테고리 선택"
+  },
+  "budgetEdit": {
+    "titleOverall": "이번 달 목표 수정",
+    "titleCategory": "예산 수정",
+    "titleNew": "카테고리 예산 추가",
+    "chooseCategory": "카테고리 선택",
+    "noCategoriesLeft": "추가할 수 있는 카테고리가 없습니다",
+    "deleteBudget": "예산 삭제",
+    "deleteConfirmTitle": "이 예산을 삭제할까요?",
+    "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다."
+  },
+  "fixedExpenseEdit": {
+    "titleAdd": "고정 지출 추가",
+    "titleEdit": "고정 지출 수정",
+    "namePlaceholder": "이름을 입력하세요",
+    "dayOfMonth": "매월 며칠",
+    "deleteFixedExpense": "고정 지출 삭제",
+    "deleteConfirmTitle": "이 고정 지출을 삭제할까요?",
+    "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다."
+  },
+  "categoryEdit": {
+    "titleAdd": "카테고리 추가",
+    "titleEdit": "카테고리 수정",
+    "namePlaceholder": "카테고리 이름",
+    "icon": "아이콘",
+    "color": "색상",
+    "subcategory": "소분류",
+    "subcategoryPlaceholder": "소분류 이름",
+    "deleteCategory": "카테고리 삭제",
+    "deleteConfirmTitle": "카테고리를 삭제할까요?",
+    "deleteConfirmBody": "이 카테고리로 저장된 과거 거래는 \"미분류\"로 표시됩니다."
+  },
+  "settings": {
+    "language": "언어",
+    "theme": "테마",
+    "account": "계정",
+    "login": "로그인",
+    "logout": "로그아웃",
+    "loginWithKakao": "카카오로 로그인",
+    "loggingIn": "로그인 중...",
+    "loginFailed": "로그인에 실패했습니다",
+    "kakaoUser": "카카오 사용자",
+    "notLoggedIn": "로그인이 필요합니다",
+    "themeSystem": "시스템",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "themePurple": "퍼플",
+    "themeBlue": "블루"
+  }
+}

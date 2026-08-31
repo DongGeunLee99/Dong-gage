@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+<head>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#EDEAE3;}
+  .app{width:390px;height:844px;position:relative;overflow:hidden;background:#15130F;font-family:'Manrope',system-ui,sans-serif;color:#15130F;display:flex;flex-direction:column;}
+  .num{font-family:'Space Grotesk',system-ui,sans-serif;font-variant-numeric:tabular-nums;}
+  a{color:#2A78D6;} a:hover{color:#1c5cab;}
+  .scrim{height:40px;flex-shrink:0;background:rgba(0,0,0,0.35);}
+  .sheet{flex:1;min-height:0;background:#FAF9F7;border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden;}
+  .handle{width:36px;height:4px;border-radius:2px;background:#DAD5C9;margin:10px auto 6px auto;flex-shrink:0;}
+  .sheet-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px 18px;}
+  .btn-text{background:none;border:none;font-size:15px;font-weight:600;color:#9B9790;padding:4px;}
+  .btn-text.save{color:#15130F;font-weight:700;}
+  .sheet-title{font-size:16px;font-weight:700;}
+  .sheet-body{flex:1;min-height:0;overflow-y:auto;padding:0 20px 16px 20px;display:flex;flex-direction:column;gap:16px;}
+  .segmented{background:#EFECE5;border-radius:12px;padding:3px;display:flex;gap:2px;flex-shrink:0;}
+  .seg{flex:1;text-align:center;padding:9px 0;border-radius:9px;font-size:14px;font-weight:700;color:#9B9790;}
+  .seg.active-exp{background:#fff;color:#E34948;box-shadow:0 1px 3px rgba(21,19,15,0.12);}
+  .amount-wrap{display:flex;align-items:baseline;justify-content:center;gap:4px;padding:10px 0 4px 0;}
+  .amount-val{font-family:'Space Grotesk',system-ui,sans-serif;font-size:42px;font-weight:700;color:#E34948;}
+  .amount-unit{font-size:20px;font-weight:600;color:#9B9790;}
+  .cat-scroll{display:flex;gap:14px;overflow-x:auto;padding:2px 2px 4px 2px;}
+  .cat-item{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;}
+  .cat-circle{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;box-sizing:border-box;}
+  .cat-circle.selected{box-shadow:0 0 0 3px #FAF9F7, 0 0 0 5px #15130F;}
+  .cat-circle.add{background:#EFECE5;color:#9B9790;}
+  .cat-label{font-size:11px;font-weight:600;color:#6B675F;}
+  .form-card{background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(21,19,15,0.05);}
+  .form-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #F0EEE8;}
+  .form-row:last-child{border-bottom:none;}
+  .form-row svg{color:#9B9790;flex-shrink:0;}
+  .form-label{flex:1;font-size:14px;font-weight:600;}
+  .form-value{font-size:14px;color:#6B675F;}
+  .placeholder{color:#B4B0A7;}
+  .switch{width:38px;height:22px;border-radius:11px;background:#E7E3DA;position:relative;flex-shrink:0;}
+  .switch-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.2);}
+  .keypad{flex-shrink:0;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#E7E3DA;padding-bottom:26px;}
+  .key{background:#FAF9F7;height:52px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;font-family:'Space Grotesk',system-ui,sans-serif;color:#15130F;}
+</style>
+</helmet>
+<div class="app">
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <button class="btn-text">취소</button>
+      <span class="sheet-title">거래 추가</span>
+      <button class="btn-text save">저장</button>
+    </div>
+    <div class="sheet-body">
+      <div class="segmented">
+        <div class="seg active-exp">지출</div>
+        <div class="seg">수입</div>
+      </div>
+
+      <div class="amount-wrap"><span class="amount-val num">8,500</span><span class="amount-unit">원</span></div>
+
+      <div class="cat-scroll">
+        <div class="cat-item"><div class="cat-circle selected" style="background:#EB6834"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 3v6M8 3v3a1 1 0 01-2 0V3M7 9v8"/><path d="M14 3s-2 1-2 4 2 3 2 3v6"/></svg></div><span class="cat-label">식비</span></div>
+        <div class="cat-item"><div class="cat-circle" style="background:#1BAF7A"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V8a2 2 0 012-2h8a2 2 0 012 2v4"/><path d="M3 12h14v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"/><circle cx="6.5" cy="15.5" r="1.1" fill="#fff"/><circle cx="13.5" cy="15.5" r="1.1" fill="#fff"/></svg></div><span class="cat-label">교통</span></div>
+        <div class="cat-item"><div class="cat-circle" style="background:#E87BA4"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h10l-1 9a1 1 0 01-1 1H7a1 1 0 01-1-1L5 7z"/><path d="M8 7V5a2 2 0 014 0v2"/></svg></div><span class="cat-label">쇼핑</span></div>
+        <div class="cat-item"><div class="cat-circle" style="background:#4A3AA7"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9l-2-2M16 13H7l2 2"/></svg></div><span class="cat-label">고정비</span></div>
+        <div class="cat-item"><div class="cat-circle" style="background:#EDA100"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><circle cx="7" cy="10" r=".9" fill="#fff" stroke="none"/><circle cx="10" cy="10" r=".9" fill="#fff" stroke="none"/><circle cx="13" cy="10" r=".9" fill="#fff" stroke="none"/></svg></div><span class="cat-label">기타</span></div>
+        <div class="cat-item"><div class="cat-circle add"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg></div><span class="cat-label">추가</span></div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-row">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2.5"/><line x1="3" y1="8.5" x2="17" y2="8.5"/></svg>
+          <span class="form-label">날짜</span>
+          <span class="form-value num">2026년 8월 30일</span>
+        </div>
+        <div class="form-row">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l1-4 9-9 3 3-9 9-4 1z"/></svg>
+          <span class="form-label placeholder">메모를 입력하세요</span>
+        </div>
+        <div class="form-row">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9l-2-2M16 13H7l2 2"/></svg>
+          <span class="form-label">고정지출로 등록</span>
+          <div class="switch"><div class="switch-knob"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="keypad">
+      <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+      <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+      <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+      <div class="key">·</div><div class="key">0</div>
+      <div class="key"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v12H7l-4-6 4-6z"/><line x1="10" y1="8" x2="14" y2="12"/><line x1="14" y1="8" x2="10" y2="12"/></svg></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

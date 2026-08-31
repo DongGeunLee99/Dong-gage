@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "캘린더" },
+    { "file": "List.dc.html", "x": 470, "y": 0, "w": 390, "h": 844, "title": "리스트" },
+    { "file": "TransactionModal.dc.html", "x": 940, "y": 0, "w": 390, "h": 844, "title": "거래 입력" },
+    { "file": "Dashboard.dc.html", "x": 1410, "y": 0, "w": 390, "h": 844, "title": "대시보드" },
+    { "file": "Management.dc.html", "x": 1880, "y": 0, "w": 390, "h": 844, "title": "관리" }
+  ],
+  "annotations": [
+    { "id": "brief-summary", "x": 0, "y": -80, "w": 460, "text": "가계부 앱 UI 목업 — 캘린더 · 리스트 · 거래 입력 · 대시보드 · 관리" }
+  ],
+  "launch": { "view": "canvas" }
+}
