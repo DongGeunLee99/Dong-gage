@@ -2,16 +2,22 @@ import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Circle, G, Svg } from 'react-native-svg';
 
 import { CloseIcon, CopyIcon, PlusIcon } from '@/components/icons';
 import { LedgerColors } from '@/constants/ledgerColors';
+import { supabase } from '@/lib/supabase';
 import { buildSettlementMessage, calculateSettlement, type SettlementExtra } from '@/lib/settlement';
 import { useCategories } from '@/store/categoriesContext';
 import { useSettings } from '@/store/settingsContext';
 import { formatAmount, getDayTransactions, TODAY, useTransactions } from '@/store/transactionsContext';
 import { createStyles } from '@/styles/aiSettlementStyles';
+
+type AiSettlementResponse = {
+  participants: string[];
+  rounds: { id: string; attendees: string[]; extras: { label: string; amount: number; appliesTo: string[] }[] }[];
+};
 
 const DONUT_R = 70;
 const CIRCUMFERENCE = 2 * Math.PI * DONUT_R;
@@ -48,6 +54,8 @@ export default function AiSettlementModal() {
   const [extrasByTx, setExtrasByTx] = useState<Record<string, SettlementExtra[]>>({});
   const [result, setResult] = useState<ReturnType<typeof calculateSettlement> | null>(null);
   const [copied, setCopied] = useState(false);
+  const [aiText, setAiText] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
 
@@ -172,6 +180,51 @@ export default function AiSettlementModal() {
     setResult(calculateSettlement(rounds));
   };
 
+  const handleAiFill = async () => {
+    if (!aiText.trim() || selectedTxList.length === 0) return;
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke<AiSettlementResponse>('ai-settlement', {
+        body: {
+          text: aiText,
+          participants,
+          rounds: selectedTxList.map((tx) => ({
+            id: tx.id,
+            label: tx.memo || getCategoryMeta(tx.categoryKey).name,
+            total: tx.amount,
+          })),
+        },
+      });
+      if (error || !data) throw error ?? new Error('empty response');
+
+      setParticipants((prev) => Array.from(new Set([...prev, ...data.participants])));
+      setAttendeesByTx((prev) => {
+        const next = { ...prev };
+        for (const r of data.rounds) next[r.id] = r.attendees;
+        return next;
+      });
+      setExtrasByTx((prev) => {
+        const next = { ...prev };
+        for (const r of data.rounds) {
+          if (r.extras.length === 0) continue;
+          next[r.id] = r.extras.map((e, i) => ({
+            id: `ai-extra-${r.id}-${i}-${Date.now()}`,
+            label: e.label,
+            amount: e.amount,
+            appliesTo: e.appliesTo,
+          }));
+        }
+        return next;
+      });
+      setAiText('');
+      setResult(null);
+    } catch {
+      Alert.alert(t('aiSettlement.aiFillErrorTitle'), t('aiSettlement.aiFillErrorBody'));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleCopy = async () => {
     if (!result) return;
     const roundLabels = selectedTxList.map((tx) => tx.memo || getCategoryMeta(tx.categoryKey).name);
@@ -262,6 +315,24 @@ export default function AiSettlementModal() {
 
         {selectedTxList.length > 0 && participants.length > 0 && (
           <>
+            <Text style={styles.sectionLabel}>{t('aiSettlement.aiFillLabel')}</Text>
+            <Text style={styles.hintText}>{t('aiSettlement.aiFillHint')}</Text>
+            <TextInput
+              style={styles.aiInput}
+              placeholder={t('aiSettlement.aiFillPlaceholder')}
+              placeholderTextColor={colors.mutedLight}
+              value={aiText}
+              onChangeText={setAiText}
+              onFocus={handleInputFocus}
+              multiline
+            />
+            <Pressable
+              style={[styles.aiFillBtn, (!aiText.trim() || aiLoading) && styles.calcBtnDisabled]}
+              disabled={!aiText.trim() || aiLoading}
+              onPress={handleAiFill}>
+              <Text style={styles.aiFillBtnText}>{aiLoading ? t('aiSettlement.aiFilling') : t('aiSettlement.aiFillButton')}</Text>
+            </Pressable>
+
             <Text style={styles.sectionLabel}>{t('aiSettlement.whoWasThere')}</Text>
             {selectedTxList.map((tx) => {
               const meta = getCategoryMeta(tx.categoryKey);

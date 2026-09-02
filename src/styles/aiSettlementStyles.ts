@@ -112,6 +112,28 @@ export function createStyles(colors: ColorPalette) {
     chipTextSmall: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 11, color: colors.ink2 },
     chipTextSelected: { color: colors.bg },
 
+    aiInput: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 11,
+      fontFamily: LedgerFonts.bodySemiBold,
+      fontSize: 13.5,
+      color: colors.ink,
+      minHeight: 64,
+      textAlignVertical: 'top',
+    },
+    aiFillBtn: {
+      marginTop: 8,
+      marginBottom: 6,
+      alignSelf: 'flex-start',
+      backgroundColor: colors.ink,
+      borderRadius: 12,
+      paddingVertical: 9,
+      paddingHorizontal: 16,
+    },
+    aiFillBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.bg },
+
     extraHint: { fontFamily: LedgerFonts.body, fontSize: 11.5, color: colors.muted },
     extraCard: {
       gap: 8,

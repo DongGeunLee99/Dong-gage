@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-09-02 (1)
+
+### · AI 정산 — 자연어 LLM 연동 (Gemini, 미배포)
+
+> todo의 "AI 정산 — 실제 LLM 연동" 착수. LLM은 상시 무료 티어가 있는 Google Gemini API로 선택(Anthropic/OpenAI는 상시 무료 티어 없음).
+
+- `supabase/functions/ai-settlement/index.ts` 신규: 클라이언트가 `{ text, participants, rounds }`(rounds는 이미 선택된 거래의 id/label/total)를 보내면, Gemini(`gemini-3.7-flash`, `response_schema`로 구조화 출력 강제)에 프롬프트를 던져 `{ participants, rounds: [{ id, attendees, extras }] }`를 받아 그대로 반환. 계산 로직(`calculateSettlement`)은 건드리지 않고 폼 상태만 채우는 방식 — todo에 적어둔 설계 의도 그대로 구현
+  - "1차/2차..." 같은 순서 표현은 클라이언트가 보낸 rounds 배열 순서에 그대로 대응하도록 프롬프트에 명시
+  - round id는 클라이언트가 보낸 값만 신뢰(응답에서 모르는 id는 필터링) — 모델이 id를 지어내는 경우 방지
+  - JWT 검증은 Supabase Edge Function 기본값(verify_jwt) 그대로 사용 — 로그인 안 하면 호출 불가
+- `src/app/aiSettlement.tsx`: 참가자 목록 채운 뒤 나오는 화면에 "AI로 채우기" 자연어 입력창 + 버튼 추가. `supabase.functions.invoke('ai-settlement', ...)` 호출 후 응답으로 `participants`/`attendeesByTx`/`extrasByTx` state를 채움. 실패 시 `Alert.alert`
+- i18n 키 8개(`aiFillLabel` 등) ko/en/ja 추가, `aiSettlementStyles.ts`에 `aiInput`/`aiFillBtn` 스타일 추가
+- `tsconfig.json`에 `supabase/functions` exclude 추가 — Deno 런타임 전역(`Deno.serve` 등)이 RN 앱의 tsc 검사에 걸려서 타입 에러 발생하던 것 회피 (별도 런타임이라 프로젝트 tsconfig 대상이 아님)
+
+**배포 완료** (사용자가 `supabase login`/`link`/`secrets set` 실행, 함수 배포 및 검증은 세션 내에서 진행):
+```
+supabase link --project-ref frolpdeoogpnhbkmsdzc
+supabase secrets set GEMINI_API_KEY=<AI Studio 발급 키>
+supabase functions deploy ai-settlement
+```
+
+**알려진 이슈 — `gemini-3.7-flash` 503(UNAVAILABLE) 빈발**: 첫 배포 후 호출 테스트에서 최신 flash 모델이 무료 티어 과부하로 계속 503 반환("This model is currently experiencing high demand"), 3회 연속 실패 + 한 번은 Edge Function idle timeout(150s)까지 걸림. 대응:
+- 모델 폴백 체인 도입 — `gemini-3.7-flash` → `gemini-3.5-flash` → `gemini-2.5-flash` 순으로 시도, 429/500/503일 때만 다음 모델로 넘어가고 그 외 에러(잘못된 키, 스키마 오류 등)는 즉시 실패시켜 무의미한 재시도 방지
+- 모델당 `AbortSignal.timeout(25s)` — 한 모델이 늘어져서 함수 전체가 150s idle timeout에 걸리는 것 방지
+- 재배포 후 실제 호출 성공(HTTP 200): "2차엔 민수 빠졌고, 3차 택시비 20000원은 철수한테만" → 2차 attendees에서 민수 제외 + 3차 extras에 택시비 20000/철수 정확히 채워짐
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과 + 배포된 함수 curl 호출 200 확인. 앱 UI에서의 실기기(Expo Go) 확인은 아직 안 함.
+
 ## 2026-09-01 (7)
 
 ### · AI 정산 — 포커스 시 수동 scrollTo로 키보드 위 여유 간격 추가 (재시도)
