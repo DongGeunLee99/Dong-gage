@@ -51,15 +51,16 @@ export function PlusIcon({ size, color = '#fff' }: IconProps) {
   );
 }
 
-export function FilterIcon({ size, color = '#15130F' }: IconProps) {
+export function InboxIcon({ size, color = '#15130F' }: IconProps) {
   return (
     <Svg {...base(size)} fill="none">
-      <Line x1="3" y1="6" x2="17" y2="6" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
-      <Circle cx="12" cy="6" r="1.8" fill="#fff" />
-      <Line x1="3" y1="10" x2="17" y2="10" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
-      <Circle cx="7" cy="10" r="1.8" fill="#fff" />
-      <Line x1="3" y1="14" x2="17" y2="14" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
-      <Circle cx="13" cy="14" r="1.8" fill="#fff" />
+      <Path
+        d="M3 11.5l2.2-5.4A1.6 1.6 0 016.7 5h6.6a1.6 1.6 0 011.5 1.1L17 11.5v2.9A1.6 1.6 0 0115.4 16H4.6A1.6 1.6 0 013 14.4v-2.9z"
+        stroke={color}
+        strokeWidth={1.7}
+        strokeLinejoin="round"
+      />
+      <Path d="M3 11.5h3.4l1 2h5.2l1-2H17" stroke={color} strokeWidth={1.7} strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -109,20 +110,6 @@ export function WalletTabIcon({ size, color = '#B4B0A7' }: IconProps) {
         strokeLinejoin="round"
       />
       <Circle cx="13.5" cy="10.5" r="1.1" fill={color} />
-    </Svg>
-  );
-}
-
-export function SettingsTabIcon({ size, color = '#B4B0A7' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Circle cx="10" cy="10" r="2.6" stroke={color} strokeWidth={1.7} />
-      <Path
-        d="M10 3v1.6M10 15.4V17M17 10h-1.6M4.6 10H3M14.8 5.2l-1.1 1.1M6.3 13.7l-1.1 1.1M14.8 14.8l-1.1-1.1M6.3 6.3L5.2 5.2"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-      />
     </Svg>
   );
 }
@@ -293,6 +280,23 @@ export function FinanceIcon({ size, color = '#fff' }: IconProps) {
     <Svg {...base(size)} fill="none">
       <Circle cx="8" cy="12" r="5" stroke={color} strokeWidth={1.7} />
       <Circle cx="12.5" cy="8" r="5" stroke={color} strokeWidth={1.7} />
+    </Svg>
+  );
+}
+
+export function ChatIcon({ size, color = '#15130F' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path
+        d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v6a1.5 1.5 0 01-1.5 1.5H9l-3.5 3v-3H4.5A1.5 1.5 0 013 11.5v-6z"
+        stroke={color}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="7" cy="8.5" r={0.9} fill={color} />
+      <Circle cx="10" cy="8.5" r={0.9} fill={color} />
+      <Circle cx="13" cy="8.5" r={0.9} fill={color} />
     </Svg>
   );
 }

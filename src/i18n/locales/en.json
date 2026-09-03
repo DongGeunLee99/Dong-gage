@@ -9,25 +9,38 @@
     "unspecified": "Unspecified",
     "income": "Income",
     "expense": "Expense",
-    "won": "KRW"
+    "won": "KRW",
+    "refreshed": "Updated"
   },
   "tabs": {
     "calendar": "Calendar",
     "list": "List",
     "dashboard": "Dashboard",
-    "management": "Manage",
-    "settings": "Settings"
+    "management": "Manage"
   },
   "calendar": {
     "balance": "Balance",
     "noTransactions": "No transactions on this day",
-    "addTransaction": "+ Add transaction"
+    "addTransaction": "+ Add transaction",
+    "reviewButton": "Review"
   },
   "list": {
     "segmentAll": "All",
-    "noTransactionsMonth": "No transactions this month"
+    "noTransactionsMonth": "No transactions this month",
+    "settleButton": "Settle"
+  },
+  "pendingReview": {
+    "title": "To review",
+    "introText": "These came in from your bank texts. Check the category and add them to your ledger.",
+    "empty": "Nothing to review",
+    "category": "Category",
+    "merchantPlaceholder": "Merchant (e.g. drinks with the team)",
+    "guessed": "auto-guessed",
+    "approve": "Add",
+    "reject": "Discard"
   },
   "dashboard": {
+    "pendingReviewBanner": "Review transactions from your texts",
     "totalIncome": "Total Income",
     "totalExpense": "Total Expense",
     "netBalance": "Net Balance",
@@ -40,7 +53,8 @@
     "categorySpending": "Spending by Category",
     "noExpensesMonth": "No expenses this month",
     "thisMonthExpense": "This month's spending",
-    "sixMonthTrend": "Last 6 Months"
+    "sixMonthTrend": "Last 6 Months",
+    "aiButton": "Ask AI"
   },
   "management": {
     "budgetSetting": "Budget",
@@ -125,6 +139,16 @@
     "copyText": "Copy",
     "copied": "Copied!"
   },
+  "aiAdvisor": {
+    "title": "AI Advisor",
+    "introText": "Ask anything about your spending",
+    "suggestion1": "Where did I spend the most this month?",
+    "suggestion2": "How does this month compare to last month?",
+    "suggestion3": "How much have I spent on Yogiyo?",
+    "inputPlaceholder": "Type a message",
+    "send": "Send",
+    "errorText": "Couldn't get an answer. Please try again in a moment."
+  },
   "settings": {
     "language": "Language",
     "theme": "Theme",
@@ -140,6 +164,13 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themePurple": "Purple",
-    "themeBlue": "Blue"
+    "themeBlue": "Blue",
+    "smsIngest": "Bank text sync",
+    "smsIngestHint": "Put this token in your iOS Shortcut and bank texts will land in your review list automatically",
+    "smsIssueToken": "Issue token",
+    "smsReissueToken": "Reissue",
+    "smsCopyToken": "Copy",
+    "smsTokenIssuedTitle": "Token copied",
+    "smsTokenIssuedBody": "Paste it into the x-ingest-token header of your Shortcut's web request. The previous token no longer works."
   }
 }

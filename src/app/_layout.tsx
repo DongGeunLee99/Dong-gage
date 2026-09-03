@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform, UIManager } from 'react-native';
 
 import { AuthProvider } from '@/store/authContext';
 import { BudgetsProvider } from '@/store/budgetsContext';
@@ -15,6 +16,11 @@ import { SettingsProvider, useSettings } from '@/store/settingsContext';
 import { TransactionsProvider } from '@/store/transactionsContext';
 
 SplashScreen.preventAutoHideAsync();
+
+// LayoutAnimation(당겨서 새로고침 후 리스트가 부드럽게 갱신되는 효과)이 구형 Android 아키텍처에서도 동작하도록.
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 function RootLayoutNav() {
   const { colors } = useSettings();
@@ -31,6 +37,8 @@ function RootLayoutNav() {
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="aiSettlement" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="aiAdvisor" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="pendingReview" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryPicker" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryEdit" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="budgetEdit" options={{ presentation: 'modal' }} />

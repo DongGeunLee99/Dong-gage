@@ -9,25 +9,38 @@
     "unspecified": "未指定",
     "income": "収入",
     "expense": "支出",
-    "won": "ウォン"
+    "won": "ウォン",
+    "refreshed": "更新しました"
   },
   "tabs": {
     "calendar": "カレンダー",
     "list": "リスト",
     "dashboard": "ダッシュボード",
-    "management": "管理",
-    "settings": "設定"
+    "management": "管理"
   },
   "calendar": {
     "balance": "残高",
     "noTransactions": "この日の取引はありません",
-    "addTransaction": "+ 取引を追加"
+    "addTransaction": "+ 取引を追加",
+    "reviewButton": "確認"
   },
   "list": {
     "segmentAll": "すべて",
-    "noTransactionsMonth": "今月の取引はありません"
+    "noTransactionsMonth": "今月の取引はありません",
+    "settleButton": "精算"
+  },
+  "pendingReview": {
+    "title": "確認する明細",
+    "introText": "SMSから取り込んだ明細です。カテゴリを確認して家計簿に追加してください。",
+    "empty": "確認する明細はありません",
+    "category": "カテゴリ",
+    "merchantPlaceholder": "店名（例: 飲み会代）",
+    "guessed": "自動分類",
+    "approve": "追加する",
+    "reject": "削除"
   },
   "dashboard": {
+    "pendingReviewBanner": "SMSから取り込んだ明細を確認してください",
     "totalIncome": "総収入",
     "totalExpense": "総支出",
     "netBalance": "純残高",
@@ -40,7 +53,8 @@
     "categorySpending": "カテゴリ別支出",
     "noExpensesMonth": "今月の支出はありません",
     "thisMonthExpense": "今月の支出",
-    "sixMonthTrend": "過去6ヶ月の推移"
+    "sixMonthTrend": "過去6ヶ月の推移",
+    "aiButton": "AI相談"
   },
   "management": {
     "budgetSetting": "予算設定",
@@ -125,6 +139,16 @@
     "copyText": "コピー",
     "copied": "コピーしました！"
   },
+  "aiAdvisor": {
+    "title": "AI家計簿アドバイザー",
+    "introText": "家計簿データについて何でも聞いてください",
+    "suggestion1": "今月一番使ったのは何？",
+    "suggestion2": "先月と比べてどう？",
+    "suggestion3": "Yogiyoでいくら使った？",
+    "inputPlaceholder": "メッセージを入力",
+    "send": "送信",
+    "errorText": "回答を取得できませんでした。しばらくしてからもう一度お試しください。"
+  },
   "settings": {
     "language": "言語",
     "theme": "テーマ",
@@ -140,6 +164,13 @@
     "themeLight": "ライト",
     "themeDark": "ダーク",
     "themePurple": "パープル",
-    "themeBlue": "ブルー"
+    "themeBlue": "ブルー",
+    "smsIngest": "SMS連携",
+    "smsIngestHint": "iOSショートカットにこのトークンを設定すると、銀行のSMSが自動で確認リストに入ります",
+    "smsIssueToken": "トークン発行",
+    "smsReissueToken": "再発行",
+    "smsCopyToken": "コピー",
+    "smsTokenIssuedTitle": "トークンをコピーしました",
+    "smsTokenIssuedBody": "ショートカットの「URLの内容を取得」でx-ingest-tokenヘッダーに貼り付けてください。以前のトークンは無効になります。"
   }
 }

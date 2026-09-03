@@ -9,25 +9,38 @@
     "unspecified": "미지정",
     "income": "수입",
     "expense": "지출",
-    "won": "원"
+    "won": "원",
+    "refreshed": "새로고침 완료"
   },
   "tabs": {
     "calendar": "캘린더",
     "list": "리스트",
     "dashboard": "대시보드",
-    "management": "관리",
-    "settings": "설정"
+    "management": "관리"
   },
   "calendar": {
     "balance": "잔액",
     "noTransactions": "이 날의 거래 내역이 없습니다",
-    "addTransaction": "+ 새 거래 추가"
+    "addTransaction": "+ 새 거래 추가",
+    "reviewButton": "검토대기"
   },
   "list": {
     "segmentAll": "전체",
-    "noTransactionsMonth": "이 달의 거래 내역이 없습니다"
+    "noTransactionsMonth": "이 달의 거래 내역이 없습니다",
+    "settleButton": "정산하기"
+  },
+  "pendingReview": {
+    "title": "검토할 내역",
+    "introText": "문자로 들어온 내역이에요. 카테고리를 확인하고 가계부에 추가해주세요.",
+    "empty": "검토할 내역이 없어요",
+    "category": "카테고리",
+    "merchantPlaceholder": "상호명 (예: 회식 술값)",
+    "guessed": "자동 분류",
+    "approve": "추가하기",
+    "reject": "삭제"
   },
   "dashboard": {
+    "pendingReviewBanner": "문자로 들어온 내역을 검토해주세요",
     "totalIncome": "총수입",
     "totalExpense": "총지출",
     "netBalance": "순잔액",
@@ -40,7 +53,8 @@
     "categorySpending": "카테고리별 지출",
     "noExpensesMonth": "이번 달 지출 내역이 없습니다",
     "thisMonthExpense": "이번 달 지출",
-    "sixMonthTrend": "최근 6개월 추이"
+    "sixMonthTrend": "최근 6개월 추이",
+    "aiButton": "AI 상담"
   },
   "management": {
     "budgetSetting": "예산 설정",
@@ -125,6 +139,16 @@
     "copyText": "복사하기",
     "copied": "복사했어요!"
   },
+  "aiAdvisor": {
+    "title": "AI 가계부 도우미",
+    "introText": "가계부 데이터에 대해 뭐든 물어보세요",
+    "suggestion1": "이번 달 어디에 제일 많이 썼어?",
+    "suggestion2": "지난달이랑 비교하면 어때?",
+    "suggestion3": "요기요에서 얼마나 썼어?",
+    "inputPlaceholder": "메시지 입력",
+    "send": "전송",
+    "errorText": "답변을 가져오지 못했어요. 잠시 후 다시 시도해주세요."
+  },
   "settings": {
     "language": "언어",
     "theme": "테마",
@@ -140,6 +164,13 @@
     "themeLight": "라이트",
     "themeDark": "다크",
     "themePurple": "퍼플",
-    "themeBlue": "블루"
+    "themeBlue": "블루",
+    "smsIngest": "문자 연동",
+    "smsIngestHint": "iOS 단축어에 이 토큰을 넣으면 은행 문자가 자동으로 검토 목록에 쌓여요",
+    "smsIssueToken": "토큰 발급",
+    "smsReissueToken": "다시 발급",
+    "smsCopyToken": "복사하기",
+    "smsTokenIssuedTitle": "토큰을 복사했어요",
+    "smsTokenIssuedBody": "단축어의 '웹 요청' 액션에서 x-ingest-token 헤더에 붙여넣으세요. 이전 토큰은 더 이상 동작하지 않아요."
   }
 }

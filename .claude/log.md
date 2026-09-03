@@ -4,6 +4,193 @@
 
 ---
 
+## 2026-09-03 (11)
+
+### · 콘텐츠 페이드에 300ms 딜레이 추가
+
+- `useRefreshFeedback`의 `fire()`에서 opacity 페이드 애니메이션만 `setTimeout(300)`으로 지연 시작(토스트 타이밍은 그대로) — 손을 뗀 직후 바로 튀지 않고 살짝 뜸을 들인 뒤 페이드되도록
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (10)
+
+### · 새로고침 피드백 재작업 — 타이밍을 손 뗄 때로 지연 + 항상 보이는 페이드로 교체
+
+> (9)를 실기기에서 확인해보니 "토스트 타이밍도 그대로고 랜더링 이벤트도 하나도 안 보인다"는 피드백. 둘 다 원인이 있었음.
+
+**LayoutAnimation이 안 보인 이유**: `LayoutAnimation`은 실제로 레이아웃(위치/크기)이 달라질 때만 애니메이션되는데, 테스트 데이터가 새로고침 전후로 똑같으면(같은 거래 목록) 레이아웃도 똑같아서 아무것도 안 보이는 게 맞는 동작이었음 — "새로고침했다"는 신호를 데이터 변경 여부와 무관하게 매번 보장하는 용도로는 부적합했음.
+
+**토스트 타이밍이 그대로였던 이유**: (9)에서 "네이티브 동작이라 못 바꾼다"고 설명했던 것 자체는 맞지만(임계값 통과 즉시 `onRefresh` 실행), 우리가 붙이는 **부가 피드백**(토스트/애니메이션)까지 그 타이밍을 그대로 따라갈 필요는 없었음 — 이 부분을 놓치고 있었음.
+
+**해결**: `src/hooks/useRefreshFeedback.ts`(신규) — 데이터 로딩 완료와 "사용자가 손을 뗐는지"(ScrollView의 `onScrollBeginDrag`/`onScrollEndDrag`로 추적)를 모두 만족할 때만 완료 신호(토스트 + 페이드)를 발동. 로딩이 먼저 끝나도 아직 드래그 중이면 대기했다가 손을 떼는 순간(`onScrollEndDrag`) 발동. 완료 신호는 토스트뿐 아니라 콘텐츠 전체를 감싼 `Animated.View`의 opacity를 살짝 낮췄다 올리는 페이드(120ms→260ms)로 — 데이터가 실제로 바뀌었는지와 무관하게 매번 눈에 보임. 4개 화면(캘린더/리스트/대시보드/관리) 전부 이 훅으로 교체, 기존 로컬 `refreshing`/`justRefreshed` state와 개별 `onRefresh` 로직 제거
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과. 실기기 확인 필요.
+
+## 2026-09-03 (9)
+
+### · 새로고침 시 "손 뗄 때 시작" 커스텀은 보류, 대신 LayoutAnimation으로 갱신 느낌 추가
+
+> "톡 진동과 함께 토스트가 뜨는데 아직 손을 올리고 있는 중"이라는 리포트로 원인 정정: `RefreshControl`은 원래 "손을 뗄 때"가 아니라 **당김 임계값을 넘는 순간** 네이티브가 `onRefresh`를 실행한다(그 "톡"도 iOS가 임계값 통과 시 주는 기본 햅틱). 데이터 조회가 빨라서 손을 떼기도 전에 새로고침이 끝나 토스트까지 뜨는 것 — 대부분의 앱이 실제로 이렇게 동작함(진짜 "릴리즈 시점"에만 시작하게 하려면 `RefreshControl`을 안 쓰고 당김 제스처를 직접 구현해야 해서 비용 대비 이득이 낮다고 판단, 보류로 정리)
+
+- 대안으로 "화면이 새로 렌더링되는 느낌"을 제안 → 채택. `LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)`을 `transactionsContext`/`categoriesContext`의 `refresh()`가 `setTransactions`/`setCategories` 직전에 호출하도록 추가 — 새 데이터로 교체될 때 리스트 항목들이 부드럽게 갱신되는 애니메이션이 자동으로 붙음(새 애니메이션 코드 작성 없이 RN 내장 기능)
+- `src/app/_layout.tsx`에 Android 구형 아키텍처 대비 `UIManager.setLayoutAnimationEnabledExperimental(true)` 가드 추가(앱 시작 시 1회)
+- 토스트는 그대로 유지(제거해 달라는 요청은 없었음) — LayoutAnimation과 병행
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (8)
+
+### · 새로고침 토스트 위치 하향 + 빈 화면일 때 pull-to-refresh 안 되는 문제 수정
+
+- 토스트 위치 `bottom: 38%` → `bottom: 15%`(화면 하단에 훨씬 가깝게)
+- **거래가 적어 콘텐츠가 화면보다 짧으면 당길 여백이 없어 새로고침 제스처가 잘 안 먹히는 문제** — 4개 화면(`calendarStyles`/`listStyles`/`dashboardStyles`/`managementStyles`) 전부 `content`(ScrollView contentContainerStyle)에 `flexGrow: 1` 추가. 콘텐츠가 화면보다 짧을 때도 컨테이너가 뷰포트 전체 높이를 채우도록 만들어 항상 당길 여백이 생기게 하는 RN 표준 해법(Android에서 특히 필요). 정렬 방식(`justifyContent`)은 안 건드려서 기존 레이아웃 그대로 유지됨
+- "손을 놓을 때 새로고침되게 해달라"는 요청은 코드 변경 없음 — `RefreshControl`은 원래 OS 기본 동작이 임계값 이상 당긴 뒤 **손을 뗄 때**(iOS `UIRefreshControl`/Android `SwipeRefreshLayout`) 발동하는 구조라 이미 그렇게 동작함. 사용자에게 확인 요청(실기기에서 여전히 다르게 느껴지면 어떤 지점이 다른지 알려달라고)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (7)
+
+### · 새로고침 완료 표시 — 상단 고정 텍스트 → 화면 하단 중앙 페이드 토스트
+
+> (6)의 "새로고침 완료" 텍스트가 마음에 안 든다는 피드백 — "목업에서 데이터 들어오는 애니메이션 같은 거" 언급했다가, 텍스트로 할 거면 "투명도 주면서 가운데 아랫부분에 잠깐 보여줬다 슬며시 사라지게" 해달라는 구체적 스펙으로 정리.
+
+- `RefreshToast`를 `Animated.Value` 기반 opacity 애니메이션으로 재작성 — 나타날 땐 220ms로 빠르게, 사라질 땐 500ms로 천천히(요청한 "슬며시"). `visible`이 꺼지자마자 언마운트하면 사라지는 애니메이션이 재생될 시간이 없어서, 컴포넌트는 항상 마운트해두고 opacity만 토글하는 방식으로 구현
+- 위치를 ScrollView 콘텐츠 맨 위(스크롤하면 같이 밀려 올라감) → 화면 root의 `position: absolute, bottom: 38%, alignSelf 가운데`로 이동 — 스크롤 위치와 무관하게 항상 화면 하단 중앙에 뜨는 오버레이. 반투명 검은 알약(`rgba(21,19,15,0.8)`) + 흰 텍스트로, 테마 색상과 무관하게 항상 같은 톤(일반적인 토스트 UI 관례)
+- `colors` prop 제거(더 이상 테마색을 안 써서 불필요) — 4개 화면 모두 `<RefreshToast visible={justRefreshed} label={...} />`로 단순화
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (6)
+
+### · Pull-to-Refresh — 관리 탭에도 추가 + 완료 토스트
+
+> "리스트, 설정에서는 안 보인다"는 리포트. 리스트는 코드 재확인 결과 (5)에서 이미 정상 연결돼 있었음(직전 테스트 타이밍 이슈로 추정, 재확인 필요). 관리(구 설정) 탭은 (5)에서 아예 빠뜨렸던 게 확인돼 이번에 추가 — 이걸로 4탭 전부 적용됨. 관리 탭은 카테고리만 서버 데이터라 `refreshCategories()`만 호출(budgets/고정지출은 로컬 상태, todo 참고).
+
+**"스피너가 도는 중인지 다 불러온 건지 구분이 안 된다" 문제**: 새로고침이 끝나면 1.5초간 "새로고침 완료" 텍스트를 잠깐 보여주는 방식으로 처리 — 앱에 이미 있던 "복사했어요!" 1500ms 토글 패턴(`aiSettlement`/`pendingReview`)과 동일한 방식이라 재사용에 가까움. `src/components/refreshToast.tsx`(신규, `RefreshToast`)를 4개 화면(캘린더/리스트/대시보드/관리) 공용으로 만들어 각 스크린의 `onRefresh` 완료 시점에 `justRefreshed` 상태를 잠깐 켬. i18n `common.refreshed` 3개 언어 추가
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과. 실기기 확인 필요(특히 리스트 탭이 정말 보이는지, 관리 탭 신규 동작).
+
+## 2026-09-03 (5)
+
+### · 당겨서 새로고침(Pull-to-Refresh) 추가
+
+> 캘린더·리스트·대시보드가 화면 진입 시 한 번만 데이터를 불러오고 그 이후엔 자동 갱신이 없어서, 앱을 켜둔 채로 SMS가 들어와도 반영이 안 되는 문제가 있었음(검토 대기만 예외적으로 `refreshPending` 보유). 모바일 웹에서 흔한 pull-to-refresh 패턴 제안 → 채택.
+
+- `transactionsContext`/`categoriesContext`에 각각 `refresh()`(Promise 반환, 확정 거래/카테고리만 재조회) 추가. 기존 `refreshPending`도 프라미스를 반환하도록 살짝 변경(`.then` 체인을 `await`로 바꿔 값을 반환) — 세 개를 `Promise.all`로 한 번에 기다릴 수 있게
+- 캘린더/리스트/대시보드 3개 ScrollView에 `RefreshControl` 연결. 캘린더는 검토대기 배지도 갱신해야 해서 `refreshTransactions`+`refreshCategories`+`refreshPending` 셋 다, 리스트/대시보드는 `refreshTransactions`+`refreshCategories`만 호출
+- budgets/fixed-expenses는 로컬 상태라 새로고침 대상에서 제외(서버에 없음, todo의 Supabase 이전 검토 항목과 연결)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (4)
+
+### · 헤더 아이콘 버튼 3개에 텍스트 라벨 추가
+
+> (3)에서 버튼을 넓혔더니 아이콘만 있어서 빈 공간이 어색하다는 취지로 "버튼 크기에 맞게 텍스트를 넣어달라"는 요청.
+
+- `iconBtn`(calendar/list/dashboard 3곳)을 `flexDirection: 'row'` + `gap: 5` + `paddingHorizontal: 8`로 바꾸고 아이콘(18px로 축소) 옆에 짧은 라벨 텍스트를 추가. 새 `iconBtnText` 스타일(11.5px bold) 3개 스타일 파일에 동일하게 추가
+- 라벨: 캘린더="검토대기"(`calendar.reviewButton`), 리스트="정산하기"(`list.settleButton`), 대시보드="AI 상담"(`dashboard.aiButton`) — 112px 폭에 맞춰 3~4자로 짧게 잡음. 3개 언어 번역 추가(en: Review/Settle/Ask AI, ja: 確認/精算/AI相談)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (3)
+
+### · 헤더 아이콘 버튼 3개(캘린더/리스트/대시보드) 원형 → 가로로 넓은 사각형
+
+> (2)에서 버튼 배치를 탭마다 1개로 줄였는데도 "버튼이 너무 작다"는 피드백. 세로는 32px 그대로 두고 가로만 32→112px(3.5배)로 넓히고, 원형(`borderRadius: 16`)이던 걸 사각형(`borderRadius: 10`)으로 변경. `calendarStyles.ts`/`listStyles.ts`/`dashboardStyles.ts`의 `iconBtn` 3곳 동일하게 수정 — 아이콘은 그대로 중앙 정렬이라 버튼 안 빈 공간이 늘어나는 형태(터치 영역 확대 목적)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-03 (2)
+
+### · 탭바 5개 → 4개 병합, 헤더 아이콘 버튼 재배치, 탭 라벨 텍스트 제거
+
+> AI 어드바이저를 리스트 헤더에 넣고 보니 리스트 탭에 아이콘 버튼이 3개(검토대기/AI 어드바이저/AI 정산)까지 쌓여서 사용자가 "버튼 3개를 밖으로 빼야 할 것 같다"고 지적. 겸사겸사 관리/설정 탭 병합도 요청해서 전체 IA를 다시 정리.
+
+**탭 구조 변경**
+- `settings` 탭을 `management` 탭에 병합 — 캘린더/리스트/대시보드/관리 4탭으로 축소. `src/app/(tabs)/settings.tsx`·`src/styles/settingsStyles.ts` 삭제, 내용은 `management.tsx`에 섹션으로 이어붙임(예산/고정지출/카테고리 — 기존 관리, 언어/테마/계정/SMS연동 — 기존 설정). 스타일은 `managementStyles.ts` 하나로 합침(두 파일이 거의 동일한 토큰을 쓰고 있어서 병합 비용이 낮았음)
+- `tabs.settings` i18n 키, `SettingsTabIcon`(더 이상 쓰는 곳 없음) 삭제
+
+**헤더 아이콘 버튼 재배치 — 탭마다 최대 1개**
+- 검토대기(Inbox): 캘린더 헤더에만 유지 (원래 캘린더·리스트·대시보드 3곳에 중복으로 있던 것 — 9/2에 "눈에 잘 띄게" 일부러 3곳에 뒀던 결정이었지만, 이번 정리로 앱 첫 진입 탭인 캘린더 한 곳으로 축소)
+- AI 어드바이저(Chat): 리스트 → 대시보드로 이동 (분석/조언 성격이 통계 화면과 맞음)
+- AI 정산(Sparkle): 리스트에 그대로 유지 (거래 골라 정산하는 흐름과 맞음)
+- 결과: 리스트=정산 버튼 1개, 대시보드=AI 버튼 1개, 캘린더=검토대기 버튼 1개, 관리=버튼 없음. `listStyles.ts`/`dashboardStyles.ts`에서 안 쓰게 된 `pendingBadge`/`pendingBadgeText` 삭제
+
+**탭바 라벨(텍스트) 제거** — "메뉴에 텍스트 빼서 화면을 넓게 쓰자"는 요청으로 `tabBarShowLabel: false` 추가, 아이콘만 남김. 라벨이 없어져서 탭바 높이도 `insets.top + 56` → `insets.top + 46`으로 축소, `tabsLayoutStyles.ts`의 이제 안 쓰는 `tabLabel` 스타일 삭제하고 `tabItem`을 아이콘 중앙 정렬로 변경
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과. 실기기에서 4탭 레이아웃·버튼 위치 확인은 아직 안 함.
+
+## 2026-09-03 (1)
+
+### · "AI 가계부 도우미" — 자연어 질의 + tool-calling 1차 구현 (배포 전)
+
+> SMS 파이프라인은 사용자가 실사용 QC 중("sms 잘 되고 있어")이라 다음 주제로 넘어감. "AI 좀 별로네" 이후 미뤄뒀던 [[AI 활용처 재검토]] 논의를 여러 턴에 걸쳐 진행 — 카드 추천(실시간 혜택 DB 없음, 리스크 큼)·SMS 카테고리 추론·영수증 OCR·자연어 질의 등을 비교한 끝에, "클로드 코드처럼 데이터를 스스로 조회하며 조언하는" 자연어 질의를 1순위로 선택. Claude API 사용 가능 여부도 논의(Claude.ai/Claude Code 구독과 API는 별도 상품·별도 과금이라는 점 설명) → 우선 지금 쓰는 Gemini 무료 티어를 유지하고, 힘들어지면 그때 Claude API로 전환하기로 결정
+
+**아키텍처 — LLM이 스스로 여러 번 조회하는 tool-calling 루프**
+- `supabase/functions/ai-advisor/index.ts` (신규): Gemini function calling(`tools: [{ functionDeclarations }]`)으로 3개 읽기 전용 도구를 선언 — `getCategoryTotals`(기간별 카테고리 합계), `comparePeriods`(두 기간 비교), `searchTransactions`(조건별 거래 검색). 모델이 `functionCall`을 반환하면 실행 후 `functionResponse`를 다시 넣어주는 루프를 최대 6회 반복, 함수 호출 없이 텍스트만 오면 종료. 모델 폴백 체인(`gemini-3.7-flash` → `3.5-flash` → `2.5-flash`)과 모델당 25s 타임아웃은 ai-settlement와 동일하게 재사용
+- **budgets 예산 도구는 v1에서 뺌** — `budgets-context`/`fixed-expenses-context`가 아직 Supabase가 아니라 로컬 메모리 상태([[budgets-context-supabase-이전-검토]], todo 참고)라 Edge Function에서 서버 쿼리로 조회할 수 없음. 나중에 이 둘을 Supabase로 옮기면 예산 대비 도구 추가 가능
+- **인증 방식이 기존 두 함수와 다름** — sms-ingest(service role, 토큰으로 사용자 식별)도 ai-settlement(DB 미접근)도 아니고, 로그인된 사용자가 직접 호출하는 상황이라 호출자의 JWT를 그대로 PostgREST에 넘겨 RLS로 본인 데이터만 보이게 함(`Authorization` 헤더 포워딩 + `apikey`는 anon key). service role을 안 쓰므로 사용자 식별 로직이 따로 필요 없음
+- Gemini function calling의 정확한 요청/응답 스키마(`functionDeclarations`의 파라미터 타입은 소문자 `object`/`string`, `contents`의 함수 결과 턴은 `role: "user"`)는 프로젝트에 처음 쓰는 기능이라 추측 대신 `ai.google.dev` 공식 문서를 WebFetch로 확인 후 구현
+
+**클라이언트**
+- `src/app/aiAdvisor.tsx` (신규, `AiAdvisorModal`) — 멀티턴 채팅 UI(말풍선 리스트 + 하단 입력창). 클라이언트는 `{role, text}[]` 형태의 대화 이력만 들고 있다가 매 질문마다 Edge Function에 전체 이력 + 새 메시지 + 오늘 날짜(`TODAY.dateStr`) + 언어를 보내는 무상태(stateless) 방식(ai-settlement와 동일 패턴) — 함수 호출 왕복 내역은 서버 쪽에서만 돌고 클라이언트 이력에는 안 쌓임
+- 첫 진입 시 안내 문구 + 예시 질문 3개(칩 형태, 탭하면 바로 전송)를 보여줘서 뭘 물어볼 수 있는지 힌트 제공
+- `src/components/icons.tsx`에 `ChatIcon`(말풍선+점 세 개, 기존 손그림 라인아트 스타일) 추가
+- `src/app/(tabs)/list.tsx` 헤더에 진입 버튼 추가(AI 정산 버튼 옆) — 사용자가 "우선 진행한 다음 UI 보고 배치 조정하자"고 해서 위치는 잠정 배치, 실기기 확인 후 재배치 가능
+- `src/app/_layout.tsx`에 `aiAdvisor` 모달 라우트 등록, i18n 3개 언어(ko/en/ja) 번역 추가
+
+**배포 완료**: Supabase CLI가 이미 로그인·프로젝트 연결(household-ledger) 상태였고 GEMINI_API_KEY도 이미 설정돼 있어서 세션 내에서 바로 `supabase functions deploy ai-advisor` 실행. 무인증 curl 호출 시 401(게이트웨이가 verify_jwt로 정상 거부) 확인 — 함수 자체는 정상 응답.
+
+**스코프 가드 보강 (배포 후 사용자 질문으로 발견)**: "도쿄 날씨 어때?" 같은 가계부 무관 질문을 던지면 어떻게 되냐는 질문에, 당시 프롬프트엔 범위 제한이 전혀 없어서 Gemini가 학습 지식으로 (부정확하게) 답할 위험이 있음을 확인. 시스템 프롬프트에 "답할 수 있는/없는 범위" 명시 섹션 추가:
+- 날씨·뉴스·환율·번역·코딩 등 가계부 무관 질문은 답 시도 없이 짧게 안내 후 예시 질문 제안하도록 지시
+- **예산 질문도 별도로 막음** — budgets 도구가 없어서(위 참고) 예산 관련 질문에 숫자를 지어낼 위험이 있었는데, "예산 기능 미지원"이라고 솔직히 답하도록 명시
+- 프롬프트 인젝션("이전 지시 무시해" 등) 방어 문구도 추가
+재배포 완료.
+
+**남은 단계**: 실기기(로그인 상태)에서 실제 대화 확인 → UI 배치 조정
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과 + 배포 후 게이트웨이 응답 확인. 실기기에서의 실제 대화 동작은 아직 미검증.
+
+## 2026-09-02 (3)
+
+### · 검토 UI 배치 조정, 상호명 수정, 오늘 날짜 수정, todo 정리
+
+- **오늘 날짜 하드코딩 제거** — `transactionsContext`의 `TODAY`가 `{ year: 2026, month: 8, day: 30 }` 고정값이라 앱을 켜면 캘린더가 항상 8월 30일에 포커스됐다. 8월 데이터로 개발하던 시절 값이 남은 것. 앱 시작 시 기기 날짜를 계산하도록 변경 — 캘린더 포커스·새 거래 기본 날짜·AI 정산의 "오늘 거래" 후보가 전부 이 값을 본다. 모듈 로드 시 1회 계산이라 앱을 켜둔 채 자정을 넘기면 다음 실행 때 갱신됨
+- **검토 대기 진입점 위치 3번 바뀜** — ① 대시보드 카드 배너 → ② 하단 전역 바 → ③ 헤더 아이콘 버튼 + 숫자 뱃지(최종). ②는 기기마다 `insets.bottom`(홈 인디케이터 여백)이 달라 아래 빈 공간이 크게 보인다는 피드백으로 폐기. ③은 캘린더·리스트·대시보드 헤더에 기존 아이콘 버튼(32px 원형)과 같은 스타일로 배치, 대기 건 0이면 버튼 자체를 숨김. `InboxIcon` 신규 추가
+- **검토 화면에서 상호명 수정 가능** — 이체로 들어온 건("카카오페이")을 "회식 술값"처럼 고쳐서 추가할 수 있어야 한다는 요구. 상호명을 `TextInput`으로 바꾸고 수정값은 승인 시점에만 저장(삭제하거나 화면을 닫으면 원래대로). 거래 편집 모달(`modal.tsx`) 재사용도 검토했으나 그 모달이 확정 거래만 조회하도록 돼 있어 수정 범위가 커져서 검토 화면 안에서 해결
+- **죽어 있던 필터 버튼 제거** — 캘린더·리스트 헤더의 필터 아이콘 버튼은 `onPress`가 없는 껍데기였다. 버튼과 `FilterIcon` 컴포넌트 모두 삭제, 캘린더의 `filterBtn` 스타일은 검토 버튼이 재사용하므로 `iconBtn`으로 이름 변경
+- **todo에서 2건 제거(완료가 아니라 추적 중단)** — 사용자 요청으로 아래 두 항목을 todo에서 뺐다. 나중에 다시 필요해질 수 있어 내용만 여기 남긴다:
+  - *카테고리 로딩 간헐적 실패 (`PGRST303: JWT issued at future`)* — `categoriesContext`의 Supabase fetch가 가끔 실패해 카테고리 아이콘이 안 보이던 현상. JWT의 `iat`가 서버 기준 미래라 거부되는 것으로, 기기 시계 오차 또는 토큰 갱신 타이밍 문제로 추정했었다. 재발하면 `supabase.auth.refreshSession()` 후 재시도하는 방향으로 검토
+  - *웹(Expo web) SSR 크래시* — `expo start --web`/`export -p web`에서 `ReferenceError: window is not defined`. `app.json`의 `web.output: "static"`이 라우트를 Node에서 프리렌더링하는데 Supabase `auth-js`가 세션 복구 시 `AsyncStorage.getItem`을 호출해서 발생. 웹 배포를 하게 되면 `supabase.ts`의 storage를 SSR에서 no-op으로 우회하거나 해당 라우트를 client-only로 전환
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 전부 통과.
+
+## 2026-09-02 (2)
+
+### · 문자(SMS) 자동입력 파이프라인 — 앱/서버 구현 (스키마 미적용, 미배포)
+
+> todo의 "SMS 자동입력 파이프라인" 착수. 사용자가 카카오뱅크 입출금 문자 스크린샷(`개인첨부/sns.png`, gitignore 대상)을 제공.
+
+**문자 판정 방식 — 온점 규칙 대신 구조 매칭.** 사용자는 "결제 문자엔 온점(`.`)이 없고 알림 문자는 길다"는 규칙을 제안했는데, 반례가 있어서 채택하지 않음 — 8월 임포트 데이터의 `ALIPAY CONNECT PTE. LTD`처럼 가맹점명에 온점이 들어가는 결제가 실제로 존재한다. 대신 문자 전체를 정규식 한 방으로 구조 매칭한다(`[카카오뱅크]` → `이름(4자리)` → `MM/DD HH:MM` → `출금|입금 N원` → 가맹점 → `잔액 N원`). 자동이체 등록/ATM 한도/인증서 재발급 같은 알림 문자는 이 구조를 못 맞춰 자연히 걸러짐. 로컬 테스트 9케이스(결제 2·이체 2·입금 1·온점 포함 1·알림 3) 전부 기대대로 통과
+- 연도가 없는 형식(`09/01`)이라 수신 시점(KST) 기준으로 채우되 12월↔1월 경계만 연도를 옮김. Edge 런타임이 UTC라 `Date.now() + 9h`로 한국 날짜를 계산
+
+**추가/변경 파일**
+- `supabase/schema_v3_sms_ingest.sql` (신규) — `transactions`에 `status`(confirmed/pending_review)·`source`(manual/sms)·`raw_message` 추가, `sms_ingest_tokens` 테이블(토큰 기본값은 pgcrypto `gen_random_bytes(24)`) + RLS
+- `supabase/functions/sms-ingest/{parse.ts,index.ts}` (신규) — 토큰으로 사용자 식별 → 파싱 → 카테고리 추론 → `pending_review`로 저장. 같은 (날짜·시각·금액·가맹점) 건이 있으면 중복으로 보고 skip. supabase-js 없이 PostgREST를 fetch로 직접 호출(의존성 0, 배포 리스크 최소화)
+- `src/store/transactionsContext.tsx` — **가계부 조회에 `status='confirmed'` 필터 추가**(이걸 빠뜨리면 검토 전 건이 그대로 가계부에 섞인다). `pendingTransactions` 상태와 `approvePending`/`rejectPending`/`refreshPending` 추가, 둘 다 optimistic update + 실패 시 롤백
+- `src/app/pendingReview.tsx` + `src/styles/pendingReviewStyles.ts` (신규) — 검토 목록 모달. 건별로 카테고리 재지정(기존 `categoryPicker` 모달과 `categoryPickerBridge` 재사용) 후 추가/삭제
+- `src/app/(tabs)/dashboard.tsx` — 대기 건이 있을 때만 상단에 건수 배너 표시(사용자 선택: 상시 탭 대신 배너 + 전용 화면)
+- `src/hooks/useSmsIngestToken.ts` (신규) — 토큰 조회/발급. Provider 없는 훅이라 `useXxx.ts` 컨벤션 적용. `expo-crypto`가 없어서 토큰 생성은 DB 기본값에 위임
+- `src/app/(tabs)/settings.tsx` — "문자 연동" 섹션(토큰 발급/재발급/복사). 발급 시 클립보드에 자동 복사
+- i18n 키 ko/en/ja 추가(`pendingReview.*`, `dashboard.pendingReviewBanner`, `settings.sms*`)
+
+**카테고리 추론**: 사용자 결정대로 "같은 가맹점의 가장 최근 confirmed 거래" 카테고리를 물려준다(정확 일치 → 부분 일치(ilike) → 없으면 `etc`). Gemini는 쓰지 않음. 이체·충전(카카오페이/저금통) 문자도 거르지 않고 전부 저장 후 사람이 판단 — 이걸로 todo의 "이체 처리 방식 결정" 항목도 정리됨
+
+**남은 단계**: ① 사용자가 `schema_v3_sms_ingest.sql`을 SQL Editor에서 실행 ② `supabase functions deploy sms-ingest --no-verify-jwt`(단축어는 JWT를 못 만들어서 JWT 검증 끄고 배포해야 함) ③ 앱에서 토큰 발급 ④ iOS 단축어 자동화 작성 ⑤ 실기기 검증
+
+**검증**: `tsc --noEmit`, `expo-doctor`(18/18), `expo export -p ios` 통과 + 파서 로컬 테스트 9/9. 배포·실기기 동작은 미검증.
+
 ## 2026-09-02 (1)
 
 ### · AI 정산 — 자연어 LLM 연동 (Gemini, 미배포)

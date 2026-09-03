@@ -23,7 +23,7 @@ export const toggleStyles = StyleSheet.create({
 export function createStyles(colors: ColorPalette) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bg },
-    content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 22 },
+    content: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 22 },
     section: { gap: 8 },
     sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 },
     sectionTitle: {
@@ -60,5 +60,48 @@ export function createStyles(colors: ColorPalette) {
     rowSub: { fontFamily: LedgerFonts.body, fontSize: 12, color: colors.muted },
     rowAmtExpense: { fontFamily: LedgerFonts.headingBold, fontSize: 14, color: LedgerColors.expense },
     rowAmtNeutral: { fontFamily: LedgerFonts.headingBold, fontSize: 14, color: colors.ink },
+
+    rowNameFlex: { flex: 1 },
+    mutedText: { color: colors.muted },
+    selectedDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent },
+    swatch: { width: 20, height: 20, borderRadius: 10 },
+    loginBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: colors.accent },
+    loginBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: '#fff' },
+    logoutBtn: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    logoutBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: LedgerColors.expense },
+
+    smsRow: { flexDirection: 'column', alignItems: 'stretch', gap: 10 },
+    smsHint: { fontSize: 12.5, lineHeight: 18 },
+    smsToken: {
+      fontFamily: LedgerFonts.body,
+      fontSize: 12.5,
+      color: colors.ink2,
+      backgroundColor: colors.lineLight,
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+    },
+    smsActions: { flexDirection: 'row', gap: 8 },
+    smsCopyBtn: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 10,
+      backgroundColor: colors.ink,
+    },
+    smsCopyBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.bg },
+    smsIssueBtn: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.line,
+    },
+    smsIssueBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.ink2 },
   });
 }

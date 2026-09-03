@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { LayoutAnimation } from 'react-native';
 
 import {
   getColorHex,
@@ -41,6 +42,7 @@ type CategoriesContextValue = {
   deleteCategory: (key: string) => void;
   getCategoryById: (key: string) => Category | undefined;
   getCategoryMeta: (key: string) => CategoryMeta;
+  refresh: () => Promise<void>;
 };
 
 const CategoriesContext = createContext<CategoriesContextValue | null>(null);
@@ -136,6 +138,22 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
     [userId],
   );
 
+  /** 당겨서 새로고침 등 수동 갱신용. */
+  const refresh = useCallback(async () => {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from('categories')
+      .select('key, name, color_id, icon_id, subcategories, sort_order')
+      .eq('user_id', userId)
+      .order('sort_order', { ascending: true });
+    if (error) {
+      console.warn('Failed to refresh categories', error);
+      return;
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCategories((data ?? []).map(fromRow));
+  }, [userId]);
+
   const getCategoryById = useCallback((key: string) => categories.find((c) => c.key === key), [categories]);
 
   const getCategoryMeta = useCallback(
@@ -160,8 +178,9 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
       deleteCategory,
       getCategoryById,
       getCategoryMeta,
+      refresh,
     }),
-    [categories, categoryKeys, isLoading, addCategory, updateCategory, deleteCategory, getCategoryById, getCategoryMeta],
+    [categories, categoryKeys, isLoading, addCategory, updateCategory, deleteCategory, getCategoryById, getCategoryMeta, refresh],
   );
 
   return <CategoriesContext.Provider value={value}>{children}</CategoriesContext.Provider>;

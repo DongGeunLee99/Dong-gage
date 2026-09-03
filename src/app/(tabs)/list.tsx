@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
-import { ChevronLeftIcon, ChevronRightIcon, FilterIcon, SparkleIcon } from '@/components/icons';
+import { ChevronLeftIcon, ChevronRightIcon, SparkleIcon } from '@/components/icons';
+import { RefreshToast } from '@/components/refreshToast';
 import { LedgerColors } from '@/constants/ledgerColors';
+import { useRefreshFeedback } from '@/hooks/useRefreshFeedback';
 import { formatFullDateWithWeekday, formatYearMonth } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
 import { useMonth } from '@/store/monthContext';
@@ -19,9 +21,15 @@ export default function ListScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { transactions } = useTransactions();
-  const { getCategoryMeta } = useCategories();
+  const { transactions, refresh: refreshTransactions } = useTransactions();
+  const { getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { year, month, goMonth, goToToday, isOnToday } = useMonth();
+  const { refreshing, justRefreshed, contentOpacity, run, onScrollBeginDrag, onScrollEndDrag } = useRefreshFeedback();
+
+  const onRefresh = useCallback(
+    () => run(async () => { await Promise.all([refreshTransactions(), refreshCategories()]); }),
+    [run, refreshTransactions, refreshCategories],
+  );
 
   const language = i18n.language as 'ko' | 'en' | 'ja';
   type Segment = 'all' | 'expense' | 'income';
@@ -77,10 +85,8 @@ export default function ListScreen() {
         </View>
         <View style={styles.headerActions}>
           <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/aiSettlement')}>
-            <SparkleIcon color={colors.ink} />
-          </Pressable>
-          <Pressable style={styles.iconBtn} hitSlop={8}>
-            <FilterIcon color={colors.ink} />
+            <SparkleIcon size={18} color={colors.ink} />
+            <Text style={styles.iconBtnText}>{t('list.settleButton')}</Text>
           </Pressable>
         </View>
       </View>
@@ -95,7 +101,13 @@ export default function ListScreen() {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onScrollEndDrag={onScrollEndDrag}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         {groups.length === 0 && <Text style={styles.emptyText}>{t('list.noTransactionsMonth')}</Text>}
         {groups.map((group) => (
           <View key={group.date} style={styles.dayGroup}>
@@ -139,6 +151,8 @@ export default function ListScreen() {
           </View>
         ))}
       </ScrollView>
+      </Animated.View>
+      <RefreshToast visible={justRefreshed} label={t('common.refreshed')} />
     </View>
   );
 }

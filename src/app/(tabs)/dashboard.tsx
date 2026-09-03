@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Circle, G, Svg } from 'react-native-svg';
 
-import { ChevronLeftIcon, ChevronRightIcon, TrendUpIcon } from '@/components/icons';
+import { ChatIcon, ChevronLeftIcon, ChevronRightIcon, TrendUpIcon } from '@/components/icons';
+import { RefreshToast } from '@/components/refreshToast';
 import { LedgerColors } from '@/constants/ledgerColors';
+import { useRefreshFeedback } from '@/hooks/useRefreshFeedback';
 import { formatYearMonth } from '@/i18n/format';
 import { useBudgets } from '@/store/budgetsContext';
 import { useCategories } from '@/store/categoriesContext';
@@ -30,10 +33,16 @@ export default function DashboardScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { transactions } = useTransactions();
-  const { categoryKeys, getCategoryMeta } = useCategories();
+  const { transactions, refresh: refreshTransactions } = useTransactions();
+  const { categoryKeys, getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { year, month, goMonth, goToToday, isOnToday } = useMonth();
   const { overallBudget, categoryBudgets } = useBudgets();
+  const { refreshing, justRefreshed, contentOpacity, run, onScrollBeginDrag, onScrollEndDrag } = useRefreshFeedback();
+
+  const onRefresh = useCallback(
+    () => run(async () => { await Promise.all([refreshTransactions(), refreshCategories()]); }),
+    [run, refreshTransactions, refreshCategories],
+  );
 
   const language = i18n.language as 'ko' | 'en' | 'ja';
 
@@ -69,9 +78,19 @@ export default function DashboardScreen() {
             <Text style={[styles.todayBtnText, isOnToday && styles.todayBtnTextDim]}>{t('common.today')}</Text>
           </Pressable>
         </View>
+        <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/aiAdvisor')}>
+          <ChatIcon size={18} color={colors.ink} />
+          <Text style={styles.iconBtnText}>{t('dashboard.aiButton')}</Text>
+        </Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onScrollEndDrag={onScrollEndDrag}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={styles.card}>
           <View style={styles.summaryTop}>
             <View style={styles.summaryItem}>
@@ -238,6 +257,8 @@ export default function DashboardScreen() {
           </View>
         </View>
       </ScrollView>
+      </Animated.View>
+      <RefreshToast visible={justRefreshed} label={t('common.refreshed')} />
     </View>
   );
 }

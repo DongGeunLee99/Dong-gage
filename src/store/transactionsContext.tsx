@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { LayoutAnimation } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/authContext';
@@ -24,6 +25,9 @@ export function parseTags(text: string) {
   return matches.map((t) => t.slice(1));
 }
 
+/** 문자에서 들어와 아직 사람이 승인하지 않은 거래. 원본 문자를 같이 들고 있다. */
+export type PendingTransaction = Transaction & { rawMessage?: string };
+
 type TransactionRow = {
   id: string;
   date: string;
@@ -36,7 +40,11 @@ type TransactionRow = {
   note: string | null;
   tags: string[];
   excluded_from_budget: boolean;
+  raw_message?: string | null;
 };
+
+const ROW_COLUMNS = 'id, date, time, type, category_key, subcategory, amount, memo, note, tags, excluded_from_budget';
+const PENDING_ROW_COLUMNS = `${ROW_COLUMNS}, raw_message`;
 
 function fromRow(row: TransactionRow): Transaction {
   return {
@@ -52,6 +60,10 @@ function fromRow(row: TransactionRow): Transaction {
     tags: row.tags.length ? row.tags : undefined,
     excludedFromBudget: row.excluded_from_budget || undefined,
   };
+}
+
+function fromPendingRow(row: TransactionRow): PendingTransaction {
+  return { ...fromRow(row), rawMessage: row.raw_message ?? undefined };
 }
 
 type AddTransactionInput = Omit<Transaction, 'id'>;
@@ -74,11 +86,17 @@ function toRow(userId: string, input: AddTransactionInput) {
 
 type TransactionsContextValue = {
   transactions: Transaction[];
+  pendingTransactions: PendingTransaction[];
   isLoading: boolean;
   addTransaction: (input: AddTransactionInput) => void;
   updateTransaction: (id: string, input: AddTransactionInput) => void;
   deleteTransaction: (id: string) => void;
   getTransactionById: (id: string) => Transaction | undefined;
+  getPendingById: (id: string) => PendingTransaction | undefined;
+  approvePending: (id: string, input?: AddTransactionInput) => void;
+  rejectPending: (id: string) => void;
+  refresh: () => Promise<void>;
+  refreshPending: () => Promise<void>;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -87,6 +105,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
   const { session } = useAuth();
   const userId = session?.user.id;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -100,8 +119,10 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
     setIsLoading(true);
     supabase
       .from('transactions')
-      .select('id, date, time, type, category_key, subcategory, amount, memo, note, tags, excluded_from_budget')
+      .select(ROW_COLUMNS)
       .eq('user_id', userId)
+      // 문자로 들어온 검토 대기 건은 승인 전까지 가계부에 섞이면 안 된다.
+      .eq('status', 'confirmed')
       .order('date', { ascending: false })
       .order('time', { ascending: false })
       .then(({ data, error }) => {
@@ -120,6 +141,47 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
     };
   }, [userId]);
 
+  const refreshPending = useCallback(async () => {
+    if (!userId) {
+      setPendingTransactions([]);
+      return;
+    }
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(PENDING_ROW_COLUMNS)
+      .eq('user_id', userId)
+      .eq('status', 'pending_review')
+      .order('date', { ascending: false })
+      .order('time', { ascending: false });
+    if (error) {
+      console.warn('Failed to load pending transactions', error);
+      return;
+    }
+    setPendingTransactions((data ?? []).map(fromPendingRow));
+  }, [userId]);
+
+  useEffect(() => {
+    refreshPending();
+  }, [refreshPending]);
+
+  /** 당겨서 새로고침 등 수동 갱신용 — 확정된 거래만 다시 불러온다. */
+  const refresh = useCallback(async () => {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from('transactions')
+      .select(ROW_COLUMNS)
+      .eq('user_id', userId)
+      .eq('status', 'confirmed')
+      .order('date', { ascending: false })
+      .order('time', { ascending: false });
+    if (error) {
+      console.warn('Failed to refresh transactions', error);
+      return;
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setTransactions((data ?? []).map(fromRow));
+  }, [userId]);
+
   const addTransaction = useCallback(
     (input: AddTransactionInput) => {
       if (!userId) return;
@@ -128,7 +190,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       supabase
         .from('transactions')
         .insert(toRow(userId, input))
-        .select('id, date, time, type, category_key, subcategory, amount, memo, note, tags, excluded_from_budget')
+        .select(ROW_COLUMNS)
         .single()
         .then(({ data, error }) => {
           if (error || !data) {
@@ -176,9 +238,90 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
 
   const getTransactionById = useCallback((id: string) => transactions.find((t) => t.id === id), [transactions]);
 
+  const getPendingById = useCallback(
+    (id: string) => pendingTransactions.find((t) => t.id === id),
+    [pendingTransactions],
+  );
+
+  /** 검토 대기 건을 확정으로 넘긴다. 검토 화면에서 고친 값이 있으면 같이 반영한다. */
+  const approvePending = useCallback(
+    (id: string, input?: AddTransactionInput) => {
+      if (!userId) return;
+      const pending = pendingTransactions.find((t) => t.id === id);
+      if (!pending) return;
+
+      const { rawMessage: _rawMessage, ...pendingWithoutRaw } = pending;
+      const approved: Transaction = input ? { ...input, id } : pendingWithoutRaw;
+      setPendingTransactions((prev) => prev.filter((t) => t.id !== id));
+      setTransactions((prev) =>
+        [approved, ...prev].sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)),
+      );
+
+      supabase
+        .from('transactions')
+        .update({ ...(input ? toRow(userId, input) : {}), status: 'confirmed' })
+        .eq('user_id', userId)
+        .eq('id', id)
+        .then(({ error }) => {
+          if (!error) return;
+          console.warn('Failed to approve transaction', error);
+          setTransactions((prev) => prev.filter((t) => t.id !== id));
+          setPendingTransactions((prev) => [pending, ...prev]);
+        });
+    },
+    [userId, pendingTransactions],
+  );
+
+  const rejectPending = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      const pending = pendingTransactions.find((t) => t.id === id);
+      if (!pending) return;
+
+      setPendingTransactions((prev) => prev.filter((t) => t.id !== id));
+      supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('id', id)
+        .then(({ error }) => {
+          if (!error) return;
+          console.warn('Failed to reject transaction', error);
+          setPendingTransactions((prev) => [pending, ...prev]);
+        });
+    },
+    [userId, pendingTransactions],
+  );
+
   const value = useMemo(
-    () => ({ transactions, isLoading, addTransaction, updateTransaction, deleteTransaction, getTransactionById }),
-    [transactions, isLoading, addTransaction, updateTransaction, deleteTransaction, getTransactionById],
+    () => ({
+      transactions,
+      pendingTransactions,
+      isLoading,
+      addTransaction,
+      updateTransaction,
+      deleteTransaction,
+      getTransactionById,
+      getPendingById,
+      approvePending,
+      rejectPending,
+      refresh,
+      refreshPending,
+    }),
+    [
+      transactions,
+      pendingTransactions,
+      isLoading,
+      addTransaction,
+      updateTransaction,
+      deleteTransaction,
+      getTransactionById,
+      getPendingById,
+      approvePending,
+      rejectPending,
+      refresh,
+      refreshPending,
+    ],
   );
 
   return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
@@ -280,4 +423,18 @@ export function buildMonthGrid(year: number, month: number) {
 
 export const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
-export const TODAY = { year: 2026, month: 8, day: 30, dateStr: '2026-08-30' };
+/**
+ * 앱이 켜진 시점의 기기 날짜. 캘린더 초기 포커스, 새 거래의 기본 날짜,
+ * AI 정산의 "오늘 거래" 후보가 전부 이 값을 본다.
+ * 모듈 로드 시 한 번 계산하므로, 앱을 켜둔 채 자정을 넘기면 다음 실행 때 갱신된다.
+ */
+function today() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return { year, month, day, dateStr: `${year}-${pad(month)}-${pad(day)}` };
+}
+
+export const TODAY = today();

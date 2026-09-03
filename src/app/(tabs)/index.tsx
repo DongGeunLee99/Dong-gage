@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
-import { ChevronLeftIcon, ChevronRightIcon, FilterIcon } from '@/components/icons';
+import { ChevronLeftIcon, ChevronRightIcon, InboxIcon } from '@/components/icons';
+import { RefreshToast } from '@/components/refreshToast';
 import { LedgerColors } from '@/constants/ledgerColors';
+import { useRefreshFeedback } from '@/hooks/useRefreshFeedback';
 import { formatFullDateWithWeekday, formatYearMonth, getWeekdayLabels } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
 import { useMonth } from '@/store/monthContext';
@@ -28,10 +30,16 @@ export default function CalendarScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { transactions } = useTransactions();
-  const { getCategoryMeta } = useCategories();
+  const { transactions, pendingTransactions, refresh: refreshTransactions, refreshPending } = useTransactions();
+  const { getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { year, month, goMonth, goToToday: goToTodayMonth, isOnToday: isOnTodayMonth } = useMonth();
   const [selectedDate, setSelectedDate] = useState(TODAY.dateStr);
+  const { refreshing, justRefreshed, contentOpacity, run, onScrollBeginDrag, onScrollEndDrag } = useRefreshFeedback();
+
+  const onRefresh = useCallback(
+    () => run(async () => { await Promise.all([refreshTransactions(), refreshCategories(), refreshPending()]); }),
+    [run, refreshTransactions, refreshCategories, refreshPending],
+  );
 
   const language = i18n.language as 'ko' | 'en' | 'ja';
   const weekdayLabels = useMemo(() => getWeekdayLabels(language), [language]);
@@ -73,12 +81,26 @@ export default function CalendarScreen() {
             <Text style={[styles.todayBtnText, isOnToday && styles.todayBtnTextDim]}>{t('common.today')}</Text>
           </Pressable>
         </View>
-        <Pressable style={styles.filterBtn} hitSlop={8}>
-          <FilterIcon color={colors.ink} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          {pendingTransactions.length > 0 && (
+            <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/pendingReview')}>
+              <InboxIcon size={18} color={colors.ink} />
+              <Text style={styles.iconBtnText}>{t('calendar.reviewButton')}</Text>
+              <View style={styles.pendingBadge}>
+                <Text style={styles.pendingBadgeText}>{pendingTransactions.length}</Text>
+              </View>
+            </Pressable>
+          )}
+        </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <Animated.View style={{ flex: 1, opacity: contentOpacity }}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={onScrollBeginDrag}
+          onScrollEndDrag={onScrollEndDrag}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={styles.summaryCard}>
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>{t('common.income')}</Text>
@@ -166,6 +188,8 @@ export default function CalendarScreen() {
           <Text style={styles.addRowText}>{t('calendar.addTransaction')}</Text>
         </Pressable>
       </ScrollView>
+      </Animated.View>
+      <RefreshToast visible={justRefreshed} label={t('common.refreshed')} />
     </View>
   );
 }
