@@ -340,6 +340,8 @@ Deno.serve(async (req: Request) => {
   const requestBase = {
     systemInstruction: { parts: [{ text: systemInstruction }] },
     tools: [{ functionDeclarations: TOOL_DECLARATIONS }],
+    // 단순 조회+답변이라 깊은 추론이 필요 없다 — 기본값(medium thinking)이 응답을 여러 초씩 늦춰서 낮춘다.
+    generationConfig: { thinking_level: 'minimal' },
   };
 
   let finalText = '';
@@ -358,12 +360,14 @@ Deno.serve(async (req: Request) => {
       }
 
       contents.push({ role: 'model', parts });
-      const responseParts: Part[] = [];
-      for (const p of functionCalls) {
-        const call = p.functionCall!;
-        const result = await executeTool(call.name, call.args ?? {}, restCtx, categoryNames);
-        responseParts.push({ functionResponse: { name: call.name, response: result as Record<string, unknown> } });
-      }
+      // 모델이 한 턴에 여러 도구를 요청하면(예: 이번 달/지난 달 동시 조회) 순차 대기 대신 병렬로 실행한다.
+      const responseParts: Part[] = await Promise.all(
+        functionCalls.map(async (p) => {
+          const call = p.functionCall!;
+          const result = await executeTool(call.name, call.args ?? {}, restCtx, categoryNames);
+          return { functionResponse: { name: call.name, response: result as Record<string, unknown> } };
+        }),
+      );
       contents.push({ role: 'user', parts: responseParts });
     }
   } catch (err) {
