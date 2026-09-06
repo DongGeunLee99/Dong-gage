@@ -28,7 +28,7 @@ const TOP_OFFSET = 0;
 
 export default function CalendarScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useSettings();
+  const { colors, hideExcludedFromBudget } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { transactions, pendingTransactions, refresh: refreshTransactions, refreshPending } = useTransactions();
   const { getCategoryMeta, refresh: refreshCategories } = useCategories();
@@ -50,6 +50,7 @@ export default function CalendarScreen() {
   const dayTotals = useMemo(() => {
     const map = new Map<string, { pos: number; neg: number }>();
     for (const t of getMonthTransactions(transactions, year, month)) {
+      if (t.excludedFromBudget) continue;
       const entry = map.get(t.date) ?? { pos: 0, neg: 0 };
       if (t.type === 'income') entry.pos += t.amount;
       else entry.neg += t.amount;
@@ -58,7 +59,10 @@ export default function CalendarScreen() {
     return map;
   }, [transactions, year, month]);
 
-  const selectedTx = useMemo(() => getDayTransactions(transactions, selectedDate), [transactions, selectedDate]);
+  const selectedTx = useMemo(() => {
+    const dayTx = getDayTransactions(transactions, selectedDate);
+    return hideExcludedFromBudget ? dayTx.filter((t) => !t.excludedFromBudget) : dayTx;
+  }, [transactions, selectedDate, hideExcludedFromBudget]);
 
   const isOnToday = isOnTodayMonth && selectedDate === TODAY.dateStr;
   const goToToday = () => {
@@ -82,15 +86,15 @@ export default function CalendarScreen() {
           </Pressable>
         </View>
         <View style={styles.headerActions}>
-          {pendingTransactions.length > 0 && (
-            <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/pendingReview')}>
-              <InboxIcon size={18} color={colors.ink} />
-              <Text style={styles.iconBtnText}>{t('calendar.reviewButton')}</Text>
+          <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/pendingReview')}>
+            <InboxIcon size={18} color={colors.ink} />
+            <Text style={styles.iconBtnText}>{t('calendar.reviewButton')}</Text>
+            {pendingTransactions.length > 0 && (
               <View style={styles.pendingBadge}>
                 <Text style={styles.pendingBadgeText}>{pendingTransactions.length}</Text>
               </View>
-            </Pressable>
-          )}
+            )}
+          </Pressable>
         </View>
       </View>
 

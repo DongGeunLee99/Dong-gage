@@ -10,7 +10,8 @@
     "income": "収入",
     "expense": "支出",
     "won": "ウォン",
-    "refreshed": "更新しました"
+    "refreshed": "更新しました",
+    "hideExcludedFromBudget": "予算除外項目を非表示"
   },
   "tabs": {
     "calendar": "カレンダー",
@@ -26,6 +27,7 @@
   },
   "list": {
     "segmentAll": "すべて",
+    "segmentExcluded": "除外済み",
     "noTransactionsMonth": "今月の取引はありません",
     "settleButton": "精算"
   },
@@ -37,7 +39,12 @@
     "merchantPlaceholder": "店名（例: 飲み会代）",
     "guessed": "自動分類",
     "approve": "追加する",
-    "reject": "削除"
+    "reject": "削除",
+    "excludeFromBudget": "予算から除外",
+    "testButton": "テスト追加",
+    "sourceKakao": "カカオバンク",
+    "sourceNaver": "ネイバーペイ",
+    "sourceOther": "その他"
   },
   "dashboard": {
     "pendingReviewBanner": "SMSから取り込んだ明細を確認してください",
@@ -65,7 +72,19 @@
     "paused": "・一時停止中",
     "monthlyGoal": "今月の目標",
     "budgetCaption": "予算除外項目は含まれません",
-    "monthlyDayLabel": "毎月{{day}}日"
+    "monthlyDayLabel": "毎月{{day}}日",
+    "uncategorizedCleanup": "未分類の整理",
+    "uncategorizedCleanupCaption": "カテゴリ削除で未分類になった取引を再設定します"
+  },
+  "uncategorizedCleanup": {
+    "title": "未分類の整理",
+    "introText": "カテゴリが削除されて未分類になった取引です。店名ごとにまとめて表示するので、確認してカテゴリを設定してください。",
+    "empty": "整理する未分類の取引はありません",
+    "sectionDeleted": "カテゴリ削除済み",
+    "sectionEtc": "その他のまま放置",
+    "noMemo": "メモなし",
+    "groupCount": "{{count}}件",
+    "applyButton": "{{count}}件にカテゴリを設定"
   },
   "modal": {
     "titleAdd": "取引を追加",

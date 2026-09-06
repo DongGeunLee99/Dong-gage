@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { ChevronRightIcon, FixedIcon, TargetIcon } from '@/components/icons';
+import { UNCATEGORIZED_META } from '@/constants/categories';
 import { RefreshToast } from '@/components/refreshToast';
+import { ToggleSwitch } from '@/components/toggleSwitch';
 import { LedgerColors } from '@/constants/ledgerColors';
-import type { ColorPalette, ThemeMode } from '@/constants/themePalettes';
+import type { ThemeMode } from '@/constants/themePalettes';
 import { useRefreshFeedback } from '@/hooks/useRefreshFeedback';
 import { useSmsIngestToken } from '@/hooks/useSmsIngestToken';
 import type { Language } from '@/i18n';
@@ -17,7 +19,7 @@ import { useCategories } from '@/store/categoriesContext';
 import { useFixedExpenses } from '@/store/fixedExpensesContext';
 import { useSettings } from '@/store/settingsContext';
 import { formatAmount } from '@/store/transactionsContext';
-import { createStyles, toggleStyles } from '@/styles/managementStyles';
+import { createStyles } from '@/styles/managementStyles';
 
 const LANGUAGE_OPTIONS: { value: Language; label: string }[] = [
   { value: 'ko', label: '한국어' },
@@ -33,19 +35,10 @@ const THEME_OPTIONS: { value: ThemeMode; swatch: string | null }[] = [
   { value: 'blue', swatch: '#1668B8' },
 ];
 
-function ToggleSwitch({ on, onToggle, colors }: { on: boolean; onToggle?: () => void; colors: ColorPalette }) {
-  return (
-    <Pressable onPress={onToggle} hitSlop={8}>
-      <View style={[toggleStyles.track, { backgroundColor: on ? colors.ink : colors.line }]}>
-        <View style={[toggleStyles.knob, { left: on ? 18 : 2 }]} />
-      </View>
-    </Pressable>
-  );
-}
-
 export default function ManagementScreen() {
   const { t } = useTranslation();
-  const { colors, themeMode, setThemeMode, language, setLanguage } = useSettings();
+  const { colors, themeMode, setThemeMode, language, setLanguage, hideExcludedFromBudget, setHideExcludedFromBudget } =
+    useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { overallBudget, categoryBudgets } = useBudgets();
@@ -117,6 +110,15 @@ export default function ManagementScreen() {
           onScrollBeginDrag={onScrollBeginDrag}
           onScrollEndDrag={onScrollEndDrag}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
+        <View style={styles.section}>
+          <View style={styles.groupCard}>
+            <View style={[styles.row, styles.rowLast]}>
+              <Text style={[styles.rowName, styles.rowNameFlex]}>{t('common.hideExcludedFromBudget')}</Text>
+              <ToggleSwitch on={hideExcludedFromBudget} onToggle={() => setHideExcludedFromBudget(!hideExcludedFromBudget)} colors={colors} />
+            </View>
+          </View>
+        </View>
+
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Text style={styles.sectionTitle}>{t('management.budgetSetting')}</Text>
@@ -215,6 +217,22 @@ export default function ManagementScreen() {
                 </Pressable>
               );
             })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('management.uncategorizedCleanup')}</Text>
+          <View style={styles.groupCard}>
+            <Pressable style={[styles.row, styles.rowLast]} onPress={() => router.push('/uncategorizedCleanup')}>
+              <View style={[styles.iconSq, { backgroundColor: UNCATEGORIZED_META.color }]}>
+                <UNCATEGORIZED_META.Icon size={16} />
+              </View>
+              <View style={styles.rowMid}>
+                <Text style={styles.rowName}>{t('management.uncategorizedCleanup')}</Text>
+                <Text style={styles.rowSub}>{t('management.uncategorizedCleanupCaption')}</Text>
+              </View>
+              <ChevronRightIcon size={14} color={colors.dashed} />
+            </Pressable>
           </View>
         </View>
 

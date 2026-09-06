@@ -19,7 +19,7 @@ const TOP_OFFSET = 0;
 
 export default function ListScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useSettings();
+  const { colors, hideExcludedFromBudget } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { transactions, refresh: refreshTransactions } = useTransactions();
   const { getCategoryMeta, refresh: refreshCategories } = useCategories();
@@ -32,16 +32,19 @@ export default function ListScreen() {
   );
 
   const language = i18n.language as 'ko' | 'en' | 'ja';
-  type Segment = 'all' | 'expense' | 'income';
+  type Segment = 'all' | 'expense' | 'income' | 'excluded';
   const SEGMENTS: { key: Segment; label: string }[] = [
     { key: 'all', label: t('list.segmentAll') },
     { key: 'expense', label: t('common.expense') },
     { key: 'income', label: t('common.income') },
+    { key: 'excluded', label: t('list.segmentExcluded') },
   ];
   const [segment, setSegment] = useState<Segment>('all');
 
   const groups = useMemo(() => {
+    const isExcludedSegment = segment === 'excluded';
     const monthTx = getMonthTransactions(transactions, year, month).filter((t) => {
+      if (isExcludedSegment) return t.excludedFromBudget;
       if (segment === 'expense') return t.type === 'expense';
       if (segment === 'income') return t.type === 'income';
       return true;
@@ -57,16 +60,21 @@ export default function ListScreen() {
     return Array.from(byDate.entries())
       .sort((a, b) => (a[0] < b[0] ? 1 : -1))
       .map(([date, items]) => {
-        const income = items.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-        const expense = items.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+        // "제외됨" 탭은 제외 목록을 확인하는 화면이라, 예산 제외 필터/가리기 설정과
+        // 무관하게 항상 전부 보여주고 순잔액도 실제 항목 그대로 계산한다.
+        const trackedItems = isExcludedSegment ? items : items.filter((t) => !t.excludedFromBudget);
+        const income = trackedItems.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+        const expense = trackedItems.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
         const net = income - expense;
+        const visibleItems = isExcludedSegment || !hideExcludedFromBudget ? items : trackedItems;
         return {
           date,
-          items: items.sort((a, b) => (a.time < b.time ? 1 : -1)),
+          items: visibleItems.sort((a, b) => (a.time < b.time ? 1 : -1)),
           net,
         };
-      });
-  }, [transactions, year, month, segment]);
+      })
+      .filter((group) => group.items.length > 0);
+  }, [transactions, year, month, segment, hideExcludedFromBudget]);
 
   return (
     <View style={styles.root}>

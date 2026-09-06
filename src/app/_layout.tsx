@@ -41,6 +41,7 @@ function RootLayoutNav() {
                     <Stack.Screen name="pendingReview" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryPicker" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="categoryEdit" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="uncategorizedCleanup" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="budgetEdit" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="fixedExpenseEdit" options={{ presentation: 'modal' }} />
                   </Stack>

@@ -90,6 +90,7 @@ type TransactionsContextValue = {
   isLoading: boolean;
   addTransaction: (input: AddTransactionInput) => void;
   updateTransaction: (id: string, input: AddTransactionInput) => void;
+  bulkUpdateCategory: (ids: string[], categoryKey: string, subcategory?: string) => Promise<void>;
   deleteTransaction: (id: string) => void;
   getTransactionById: (id: string) => Transaction | undefined;
   getPendingById: (id: string) => PendingTransaction | undefined;
@@ -97,6 +98,7 @@ type TransactionsContextValue = {
   rejectPending: (id: string) => void;
   refresh: () => Promise<void>;
   refreshPending: () => Promise<void>;
+  addTestPendingTransaction: () => Promise<void>;
 };
 
 const TransactionsContext = createContext<TransactionsContextValue | null>(null);
@@ -220,6 +222,24 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
     [userId],
   );
 
+  /** 미지정(카테고리가 삭제되어 붕 뜬) 거래 여러 건을 골라 한 번에 카테고리를 지정한다. */
+  const bulkUpdateCategory = useCallback(
+    async (ids: string[], categoryKey: string, subcategory?: string) => {
+      if (!userId || ids.length === 0) return;
+      setTransactions((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, categoryKey, subcategory } : t)));
+      const { error } = await supabase
+        .from('transactions')
+        .update({ category_key: categoryKey, subcategory: subcategory ?? null })
+        .eq('user_id', userId)
+        .in('id', ids);
+      if (error) {
+        console.warn('Failed to bulk update category', error);
+        await refresh();
+      }
+    },
+    [userId, refresh],
+  );
+
   const deleteTransaction = useCallback(
     (id: string) => {
       if (!userId) return;
@@ -293,6 +313,37 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
     [userId, pendingTransactions],
   );
 
+  /**
+   * 검토 대기함 UI를 실제 문자 없이 테스트하려고 만든 더미 항목.
+   * sms-ingest가 만드는 pending_review 행과 같은 모양(source='sms', 0원, etc 카테고리)으로 직접 삽입한다.
+   */
+  const addTestPendingTransaction = useCallback(async () => {
+    if (!userId) return;
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const { error } = await supabase.from('transactions').insert({
+      user_id: userId,
+      date: TODAY.dateStr,
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}:00`,
+      type: 'expense',
+      category_key: 'etc',
+      subcategory: null,
+      amount: 0,
+      memo: '테스트 결제',
+      note: null,
+      tags: [],
+      excluded_from_budget: false,
+      status: 'pending_review',
+      source: 'sms',
+      raw_message: '[테스트] 검토 대기함 확인용으로 버튼을 눌러 생성한 항목입니다.',
+    });
+    if (error) {
+      console.warn('Failed to add test pending transaction', error);
+      return;
+    }
+    await refreshPending();
+  }, [userId, refreshPending]);
+
   const value = useMemo(
     () => ({
       transactions,
@@ -300,6 +351,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       isLoading,
       addTransaction,
       updateTransaction,
+      bulkUpdateCategory,
       deleteTransaction,
       getTransactionById,
       getPendingById,
@@ -307,6 +359,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       rejectPending,
       refresh,
       refreshPending,
+      addTestPendingTransaction,
     }),
     [
       transactions,
@@ -314,6 +367,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       isLoading,
       addTransaction,
       updateTransaction,
+      bulkUpdateCategory,
       deleteTransaction,
       getTransactionById,
       getPendingById,
@@ -321,6 +375,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       rejectPending,
       refresh,
       refreshPending,
+      addTestPendingTransaction,
     ],
   );
 
@@ -348,21 +403,26 @@ export function getDayTransactions(transactions: Transaction[], dateStr: string)
   return transactions.filter((t) => t.date === dateStr);
 }
 
+/** 예산 제외 표시된 거래는 없는 것처럼 취급한다 — 모든 집계 함수가 이 필터를 거친다. */
+function excludeBudgetSkipped(transactions: Transaction[]) {
+  return transactions.filter((t) => !t.excludedFromBudget);
+}
+
 export function monthSummary(transactions: Transaction[], year: number, month: number) {
-  const monthTx = getMonthTransactions(transactions, year, month);
+  const monthTx = excludeBudgetSkipped(getMonthTransactions(transactions, year, month));
   const income = monthTx.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const expense = monthTx.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   return { income, expense, balance: income - expense };
 }
 
 export function trackedExpenseTotal(transactions: Transaction[], year: number, month: number) {
-  return getMonthTransactions(transactions, year, month)
-    .filter((t) => t.type === 'expense' && !t.excludedFromBudget)
+  return excludeBudgetSkipped(getMonthTransactions(transactions, year, month))
+    .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 }
 
 export function categoryBreakdown(transactions: Transaction[], year: number, month: number, categoryKeys: string[]) {
-  const monthTx = getMonthTransactions(transactions, year, month).filter((t) => t.type === 'expense');
+  const monthTx = excludeBudgetSkipped(getMonthTransactions(transactions, year, month)).filter((t) => t.type === 'expense');
   const totalExpense = monthTx.reduce((sum, t) => sum + t.amount, 0);
 
   return categoryKeys.map((key) => {

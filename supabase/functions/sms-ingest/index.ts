@@ -7,7 +7,20 @@
 // 저장은 전부 status='pending_review' — 이체/충전 문자도 거르지 않고 일단 넣고,
 // 앱의 검토 화면에서 사람이 승인/삭제한다.
 
-import { parseKakaoBankSms } from './parse.ts';
+import { parseKakaoBankSms, parseNaverPaySms } from './parse.ts';
+
+// 문자 하나를 여러 파서에 순서대로 시도한다 — 형식이 겹치지 않아(각자 고유한
+// 대괄호 태그를 앵커로 씀) 매칭되는 파서는 최대 하나뿐이다. 발신처가 늘어나면
+// 이 배열에 파서만 추가하면 된다.
+const SMS_PARSERS = [parseKakaoBankSms, parseNaverPaySms];
+
+function parseSms(message: string) {
+  for (const parse of SMS_PARSERS) {
+    const parsed = parse(message);
+    if (parsed) return parsed;
+  }
+  return null;
+}
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -105,7 +118,7 @@ Deno.serve(async (req: Request) => {
   }
   if (!userId) return json({ error: 'Unknown ingest token' }, 401);
 
-  const parsed = parseKakaoBankSms(message);
+  const parsed = parseSms(message);
   if (!parsed) {
     // 알림 문자(자동이체 등록, ATM 한도 변경, 인증서 재발급 등)는 여기로 떨어진다.
     // 단축어가 실패로 보지 않도록 200으로 응답한다.

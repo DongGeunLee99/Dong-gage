@@ -10,11 +10,24 @@ export function createStyles(colors: ColorPalette) {
     sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18, paddingBottom: 12 },
     btnCancel: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 15, color: colors.muted, padding: 4 },
     sheetTitle: { fontFamily: LedgerFonts.bodyBold, fontSize: 16, color: colors.ink },
-    headSpacer: { width: 40 },
+    testBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      backgroundColor: colors.lineLight,
+    },
+    testBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 11.5, color: colors.ink },
     body: { paddingHorizontal: 20, paddingBottom: 40 },
 
     introText: { fontFamily: LedgerFonts.bodyMedium, fontSize: 13.5, color: colors.ink2, lineHeight: 20, marginBottom: 14 },
     emptyText: { fontFamily: LedgerFonts.body, fontSize: 13, color: colors.muted, paddingVertical: 24, textAlign: 'center' },
+
+    sourceGroup: { gap: 10, marginBottom: 6 },
+    sourceGroupRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    sourceGroupLabel: { fontFamily: LedgerFonts.bodyBold, fontSize: 11.5, color: colors.muted },
 
     card: {
       backgroundColor: colors.card,
@@ -54,6 +67,9 @@ export function createStyles(colors: ColorPalette) {
     categoryDot: { width: 10, height: 10, borderRadius: 5 },
     categoryBtnText: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 12.5, color: colors.ink },
     guessTag: { fontFamily: LedgerFonts.body, fontSize: 11, color: colors.mutedLight },
+
+    excludeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    excludeLabel: { fontFamily: LedgerFonts.body, fontSize: 12, color: colors.muted },
 
     actions: { flexDirection: 'row', gap: 8 },
     approveBtn: {

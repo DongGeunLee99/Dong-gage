@@ -7,7 +7,7 @@ import i18n, { type Language } from '@/i18n';
 
 const STORAGE_KEY = 'ledger_settings';
 
-type StoredSettings = { themeMode: ThemeMode; language: Language };
+type StoredSettings = { themeMode: ThemeMode; language: Language; hideExcludedFromBudget: boolean };
 
 type SettingsContextValue = {
   themeMode: ThemeMode;
@@ -16,6 +16,8 @@ type SettingsContextValue = {
   setThemeMode: (mode: ThemeMode) => void;
   language: Language;
   setLanguage: (language: Language) => void;
+  hideExcludedFromBudget: boolean;
+  setHideExcludedFromBudget: (hide: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -24,6 +26,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
   const [language, setLanguageState] = useState<Language>('ko');
+  const [hideExcludedFromBudget, setHideExcludedFromBudgetState] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
@@ -35,6 +38,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           setLanguageState(stored.language);
           i18n.changeLanguage(stored.language);
         }
+        if (stored.hideExcludedFromBudget) setHideExcludedFromBudgetState(stored.hideExcludedFromBudget);
       } catch {
         // ignore malformed storage
       }
@@ -42,7 +46,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const persist = (next: Partial<StoredSettings>) => {
-    const value: StoredSettings = { themeMode, language, ...next };
+    const value: StoredSettings = { themeMode, language, hideExcludedFromBudget, ...next };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   };
 
@@ -57,12 +61,26 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     persist({ language: lang });
   };
 
+  const setHideExcludedFromBudget = (hide: boolean) => {
+    setHideExcludedFromBudgetState(hide);
+    persist({ hideExcludedFromBudget: hide });
+  };
+
   const resolvedTheme: ResolvedTheme = themeMode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : themeMode;
   const colors = THEME_PALETTES[resolvedTheme];
 
   const value = useMemo(
-    () => ({ themeMode, resolvedTheme, colors, setThemeMode, language, setLanguage }),
-    [themeMode, resolvedTheme, colors, language],
+    () => ({
+      themeMode,
+      resolvedTheme,
+      colors,
+      setThemeMode,
+      language,
+      setLanguage,
+      hideExcludedFromBudget,
+      setHideExcludedFromBudget,
+    }),
+    [themeMode, resolvedTheme, colors, language, hideExcludedFromBudget],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

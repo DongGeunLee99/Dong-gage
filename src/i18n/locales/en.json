@@ -10,7 +10,8 @@
     "income": "Income",
     "expense": "Expense",
     "won": "KRW",
-    "refreshed": "Updated"
+    "refreshed": "Updated",
+    "hideExcludedFromBudget": "Hide budget-excluded items"
   },
   "tabs": {
     "calendar": "Calendar",
@@ -26,6 +27,7 @@
   },
   "list": {
     "segmentAll": "All",
+    "segmentExcluded": "Excluded",
     "noTransactionsMonth": "No transactions this month",
     "settleButton": "Settle"
   },
@@ -37,7 +39,12 @@
     "merchantPlaceholder": "Merchant (e.g. drinks with the team)",
     "guessed": "auto-guessed",
     "approve": "Add",
-    "reject": "Discard"
+    "reject": "Discard",
+    "excludeFromBudget": "Exclude from budget",
+    "testButton": "Add test",
+    "sourceKakao": "KakaoBank",
+    "sourceNaver": "Naver Pay",
+    "sourceOther": "Other"
   },
   "dashboard": {
     "pendingReviewBanner": "Review transactions from your texts",
@@ -65,7 +72,19 @@
     "paused": "· Paused",
     "monthlyGoal": "This month's goal",
     "budgetCaption": "Excludes items marked out of budget",
-    "monthlyDayLabel": "Day {{day}} each month"
+    "monthlyDayLabel": "Day {{day}} each month",
+    "uncategorizedCleanup": "Clean up uncategorized",
+    "uncategorizedCleanupCaption": "Re-assign transactions left uncategorized by a deleted category"
+  },
+  "uncategorizedCleanup": {
+    "title": "Clean Up Uncategorized",
+    "introText": "These transactions became uncategorized because their category was deleted. Grouped by merchant — review and assign a category to each group.",
+    "empty": "Nothing to clean up",
+    "sectionDeleted": "Category deleted",
+    "sectionEtc": "Left as Other",
+    "noMemo": "No memo",
+    "groupCount": "{{count}} txns",
+    "applyButton": "Assign category to {{count}}"
   },
   "modal": {
     "titleAdd": "Add Transaction",

@@ -3,23 +3,6 @@ import { StyleSheet } from 'react-native';
 import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
-export const toggleStyles = StyleSheet.create({
-  track: { width: 38, height: 22, borderRadius: 11 },
-  knob: {
-    position: 'absolute',
-    top: 2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
-});
-
 export function createStyles(colors: ColorPalette) {
   return StyleSheet.create({
     sheet: { flex: 1, backgroundColor: colors.bg },

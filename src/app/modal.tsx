@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 
 import { CalendarTabIcon, ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FixedIcon, PencilIcon } from '@/components/icons';
+import { ToggleSwitch } from '@/components/toggleSwitch';
 import { INCOME_CATEGORY_KEY } from '@/constants/categories';
 import { LedgerColors } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
@@ -23,17 +24,7 @@ import { useCategories } from '@/store/categoriesContext';
 import { useCategoryPickerBridge } from '@/store/categoryPickerBridge';
 import { useSettings } from '@/store/settingsContext';
 import { formatAmount, parseTags, TODAY, useTransactions, type TransactionType } from '@/store/transactionsContext';
-import { createStyles, toggleStyles } from '@/styles/transactionModalStyles';
-
-function ToggleSwitch({ on, onToggle, colors }: { on: boolean; onToggle?: () => void; colors: ColorPalette }) {
-  return (
-    <Pressable onPress={onToggle} hitSlop={8}>
-      <View style={[toggleStyles.track, { backgroundColor: on ? colors.ink : colors.line }]}>
-        <View style={[toggleStyles.knob, { left: on ? 18 : 2 }]} />
-      </View>
-    </Pressable>
-  );
-}
+import { createStyles } from '@/styles/transactionModalStyles';
 
 const MAX_DIGITS = 10;
 const KEYBOARD_ACCESSORY_ID = 'transaction-modal-accessory';
@@ -192,7 +183,7 @@ export default function TransactionModal() {
       memo: memo.trim() || undefined,
       note: note.trim() || undefined,
       tags: note.trim() ? parseTags(note) : undefined,
-      excludedFromBudget: type === 'expense' ? excludeFromBudget : undefined,
+      excludedFromBudget: excludeFromBudget,
     };
     if (isEditing && editingId) {
       updateTransaction(editingId, input);
@@ -322,15 +313,13 @@ export default function TransactionModal() {
             />
           </Pressable>
         </View>
-        {type === 'expense' && (
-          <View style={styles.formCard}>
-            <View style={[styles.formRow, styles.formRowLast]}>
-              <FixedIcon size={18} color={colors.muted} />
-              <Text style={styles.formLabel}>{t('modal.excludeFromBudget')}</Text>
-              <ToggleSwitch on={excludeFromBudget} onToggle={() => setExcludeFromBudget((v) => !v)} colors={colors} />
-            </View>
+        <View style={styles.formCard}>
+          <View style={[styles.formRow, styles.formRowLast]}>
+            <FixedIcon size={18} color={colors.muted} />
+            <Text style={styles.formLabel}>{t('modal.excludeFromBudget')}</Text>
+            <ToggleSwitch on={excludeFromBudget} onToggle={() => setExcludeFromBudget((v) => !v)} colors={colors} />
           </View>
-        )}
+        </View>
         {isEditing && (
           <Pressable style={styles.deleteRow} onPress={handleDelete}>
             <Text style={styles.deleteRowText}>{t('modal.deleteTransaction')}</Text>

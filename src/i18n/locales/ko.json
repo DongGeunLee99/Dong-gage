@@ -10,7 +10,8 @@
     "income": "수입",
     "expense": "지출",
     "won": "원",
-    "refreshed": "새로고침 완료"
+    "refreshed": "새로고침 완료",
+    "hideExcludedFromBudget": "예산 제외 항목 가리기"
   },
   "tabs": {
     "calendar": "캘린더",
@@ -26,6 +27,7 @@
   },
   "list": {
     "segmentAll": "전체",
+    "segmentExcluded": "제외됨",
     "noTransactionsMonth": "이 달의 거래 내역이 없습니다",
     "settleButton": "정산하기"
   },
@@ -37,7 +39,12 @@
     "merchantPlaceholder": "상호명 (예: 회식 술값)",
     "guessed": "자동 분류",
     "approve": "추가하기",
-    "reject": "삭제"
+    "reject": "삭제",
+    "excludeFromBudget": "예산에서 제외",
+    "testButton": "테스트 추가",
+    "sourceKakao": "카카오뱅크",
+    "sourceNaver": "네이버페이",
+    "sourceOther": "기타"
   },
   "dashboard": {
     "pendingReviewBanner": "문자로 들어온 내역을 검토해주세요",
@@ -65,7 +72,19 @@
     "paused": "· 일시중지",
     "monthlyGoal": "이번 달 목표",
     "budgetCaption": "예산 제외 항목 미포함",
-    "monthlyDayLabel": "매월 {{day}}일"
+    "monthlyDayLabel": "매월 {{day}}일",
+    "uncategorizedCleanup": "미지정 내역 정리",
+    "uncategorizedCleanupCaption": "카테고리가 삭제되어 붕 뜬 거래를 다시 지정해요"
+  },
+  "uncategorizedCleanup": {
+    "title": "미지정 내역 정리",
+    "introText": "카테고리가 삭제되어 미지정 상태가 된 거래들이에요. 상호명을 모아서 보여드리니, 확인 후 한 번에 카테고리를 지정해주세요.",
+    "empty": "정리할 미지정 내역이 없어요",
+    "sectionDeleted": "카테고리 삭제됨",
+    "sectionEtc": "기타로 방치됨",
+    "noMemo": "메모 없음",
+    "groupCount": "{{count}}건",
+    "applyButton": "{{count}}건에 카테고리 지정"
   },
   "modal": {
     "titleAdd": "거래 추가",

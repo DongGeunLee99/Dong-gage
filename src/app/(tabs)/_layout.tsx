@@ -1,5 +1,5 @@
-import { createMaterialTopTabNavigator, type MaterialTopTabNavigationEventMap, type MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
-import type { ParamListBase, TabNavigationState } from '@react-navigation/native';
+import { createMaterialTopTabNavigator, type MaterialTopTabNavigationEventMap, type MaterialTopTabNavigationOptions } from "expo-router/js-top-tabs";
+import type { ParamListBase, TabNavigationState } from "expo-router/react-navigation";
 import { withLayoutContext } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -43,28 +43,28 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: t('tabs.calendar'),
-            tabBarIcon: ({ color }) => <CalendarTabIcon color={color} />,
+            tabBarIcon: ({ color }) => <CalendarTabIcon color={color as string} />,
           }}
         />
         <MaterialTopTabs.Screen
           name="list"
           options={{
             title: t('tabs.list'),
-            tabBarIcon: ({ color }) => <ListTabIcon color={color} />,
+            tabBarIcon: ({ color }) => <ListTabIcon color={color as string} />,
           }}
         />
         <MaterialTopTabs.Screen
           name="dashboard"
           options={{
             title: t('tabs.dashboard'),
-            tabBarIcon: ({ color }) => <ChartTabIcon color={color} />,
+            tabBarIcon: ({ color }) => <ChartTabIcon color={color as string} />,
           }}
         />
         <MaterialTopTabs.Screen
           name="management"
           options={{
             title: t('tabs.management'),
-            tabBarIcon: ({ color }) => <WalletTabIcon color={color} />,
+            tabBarIcon: ({ color }) => <WalletTabIcon color={color as string} />,
           }}
         />
       </MaterialTopTabs>

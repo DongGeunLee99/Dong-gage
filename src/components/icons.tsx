@@ -209,6 +209,23 @@ export function CloseIcon({ size, color = '#15130F' }: IconProps) {
   );
 }
 
+/** 브랜드 로고가 아니라, 사각형 마크 형태를 연상시키는 용도의 중립적인 아이콘. */
+export function SquareMarkIcon({ size, color = '#15130F' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Rect x="4" y="4" width="12" height="12" rx="3" stroke={color} strokeWidth={1.7} />
+    </Svg>
+  );
+}
+
+export function CheckIcon({ size, color = '#fff' }: IconProps) {
+  return (
+    <Svg {...base(size)} fill="none">
+      <Path d="M4.5 10.5l3.5 3.5 7.5-8" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function CopyIcon({ size, color = '#15130F' }: IconProps) {
   return (
     <Svg {...base(size)} fill="none">
