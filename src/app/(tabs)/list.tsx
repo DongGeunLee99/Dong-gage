@@ -140,10 +140,17 @@ export default function ListScreen() {
                     <meta.Icon />
                   </View>
                   <View style={styles.txMid}>
-                    <Text style={styles.txName}>
-                      {meta.name}
-                      {item.subcategory ? ` · ${item.subcategory}` : ''}
-                    </Text>
+                    <View style={styles.txNameRow}>
+                      <Text style={styles.txName}>
+                        {meta.name}
+                        {item.subcategory ? ` · ${item.subcategory}` : ''}
+                      </Text>
+                      {!!item.excludedFromBudget && (
+                        <View style={styles.excludedPill}>
+                          <Text style={styles.excludedPillText}>{t('list.segmentExcluded')}</Text>
+                        </View>
+                      )}
+                    </View>
                     {!!item.memo && <Text style={styles.txMemo}>{item.memo}</Text>}
                   </View>
                   <View style={styles.txRight}>

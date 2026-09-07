@@ -7,7 +7,7 @@ import i18n, { type Language } from '@/i18n';
 
 const STORAGE_KEY = 'ledger_settings';
 
-type StoredSettings = { themeMode: ThemeMode; language: Language; hideExcludedFromBudget: boolean };
+type StoredSettings = { themeMode: ThemeMode; language: Language; hideExcludedFromBudget: boolean; selfName: string };
 
 type SettingsContextValue = {
   themeMode: ThemeMode;
@@ -18,6 +18,9 @@ type SettingsContextValue = {
   setLanguage: (language: Language) => void;
   hideExcludedFromBudget: boolean;
   setHideExcludedFromBudget: (hide: boolean) => void;
+  /** 이체 문자의 상대방 이름이 이 값과 일치하면 검토 화면에서 예산제외 토글을 미리 켜둔다. */
+  selfName: string;
+  setSelfName: (name: string) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -27,6 +30,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>('system');
   const [language, setLanguageState] = useState<Language>('ko');
   const [hideExcludedFromBudget, setHideExcludedFromBudgetState] = useState(false);
+  const [selfName, setSelfNameState] = useState('');
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
@@ -39,6 +43,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           i18n.changeLanguage(stored.language);
         }
         if (stored.hideExcludedFromBudget) setHideExcludedFromBudgetState(stored.hideExcludedFromBudget);
+        if (stored.selfName) setSelfNameState(stored.selfName);
       } catch {
         // ignore malformed storage
       }
@@ -46,7 +51,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const persist = (next: Partial<StoredSettings>) => {
-    const value: StoredSettings = { themeMode, language, hideExcludedFromBudget, ...next };
+    const value: StoredSettings = { themeMode, language, hideExcludedFromBudget, selfName, ...next };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   };
 
@@ -66,6 +71,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     persist({ hideExcludedFromBudget: hide });
   };
 
+  const setSelfName = (name: string) => {
+    setSelfNameState(name);
+    persist({ selfName: name });
+  };
+
   const resolvedTheme: ResolvedTheme = themeMode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : themeMode;
   const colors = THEME_PALETTES[resolvedTheme];
 
@@ -79,8 +89,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setLanguage,
       hideExcludedFromBudget,
       setHideExcludedFromBudget,
+      selfName,
+      setSelfName,
     }),
-    [themeMode, resolvedTheme, colors, language, hideExcludedFromBudget],
+    [themeMode, resolvedTheme, colors, language, hideExcludedFromBudget, selfName],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

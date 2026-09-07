@@ -21,6 +21,7 @@ export const LedgerColors = {
   leisure: '#C28CC8',
   events: '#AFB978',
   finance: '#788DB8',
+  cafe: '#C9967A',
   selectedDay: '#5AC0EF',
 } as const;
 

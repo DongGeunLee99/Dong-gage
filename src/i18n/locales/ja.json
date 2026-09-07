@@ -114,7 +114,10 @@
     "titleAdd": "固定費を追加",
     "titleEdit": "固定費を編集",
     "namePlaceholder": "名前を入力してください",
-    "dayOfMonth": "毎月の支払日",
+    "expectedDay": "予定支払日",
+    "merchantName": "予定店舗名",
+    "merchantNamePlaceholder": "SMSに表示される名前（任意）",
+    "merchantNameHint": "カード決済のSMSにこの名前が表示されると、カテゴリが自動で入力されて確認リストに追加されます。SMSが来ない口座振替の場合は空欄のままにしてください。",
     "deleteFixedExpense": "固定費を削除",
     "deleteConfirmTitle": "この固定費を削除しますか？",
     "deleteConfirmBody": "削除すると元に戻せません。"
@@ -190,6 +193,8 @@
     "smsReissueToken": "再発行",
     "smsCopyToken": "コピー",
     "smsTokenIssuedTitle": "トークンをコピーしました",
-    "smsTokenIssuedBody": "ショートカットの「URLの内容を取得」でx-ingest-tokenヘッダーに貼り付けてください。以前のトークンは無効になります。"
+    "smsTokenIssuedBody": "ショートカットの「URLの内容を取得」でx-ingest-tokenヘッダーに貼り付けてください。以前のトークンは無効になります。",
+    "selfNameHint": "振込メッセージの相手名がこの名前と一致すると、確認画面で予算除外を先にオンにしておきます",
+    "selfNamePlaceholder": "銀行に登録された本人名義"
   }
 }

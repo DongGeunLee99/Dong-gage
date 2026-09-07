@@ -114,7 +114,10 @@
     "titleAdd": "Add Fixed Expense",
     "titleEdit": "Edit Fixed Expense",
     "namePlaceholder": "Enter a name",
-    "dayOfMonth": "Day of month",
+    "expectedDay": "Expected day",
+    "merchantName": "Expected merchant",
+    "merchantNamePlaceholder": "Name as it appears in texts (optional)",
+    "merchantNameHint": "When a card-payment text shows this name, the category fills in automatically and it lands in your review list. Leave blank for bank transfers that don't send texts.",
     "deleteFixedExpense": "Delete Fixed Expense",
     "deleteConfirmTitle": "Delete this fixed expense?",
     "deleteConfirmBody": "This cannot be undone."
@@ -190,6 +193,8 @@
     "smsReissueToken": "Reissue",
     "smsCopyToken": "Copy",
     "smsTokenIssuedTitle": "Token copied",
-    "smsTokenIssuedBody": "Paste it into the x-ingest-token header of your Shortcut's web request. The previous token no longer works."
+    "smsTokenIssuedBody": "Paste it into the x-ingest-token header of your Shortcut's web request. The previous token no longer works.",
+    "selfNameHint": "When a transfer text shows this name as the counterparty, the review screen pre-checks Exclude from budget",
+    "selfNamePlaceholder": "Your bank-registered name"
   }
 }

@@ -161,29 +161,36 @@ export default function CalendarScreen() {
           {selectedDate === TODAY.dateStr ? ` · ${t('common.today')}` : ''}
         </Text>
         {selectedTx.length === 0 && <Text style={styles.emptyText}>{t('calendar.noTransactions')}</Text>}
-        {selectedTx.map((t) => {
-          const meta = getCategoryMeta(t.categoryKey);
+        {selectedTx.map((tx) => {
+          const meta = getCategoryMeta(tx.categoryKey);
           return (
             <Pressable
-              key={t.id}
+              key={tx.id}
               style={styles.txRow}
-              onPress={() => router.push({ pathname: '/modal', params: { id: t.id } })}>
+              onPress={() => router.push({ pathname: '/modal', params: { id: tx.id } })}>
               <View style={[styles.catCircle, { backgroundColor: meta.color }]}>
                 <meta.Icon />
               </View>
               <View style={styles.txMid}>
-                <Text style={styles.txName}>
-                  {meta.name}
-                  {t.subcategory ? ` · ${t.subcategory}` : ''}
-                </Text>
-                {!!t.memo && <Text style={styles.txMemo}>{t.memo}</Text>}
+                <View style={styles.txNameRow}>
+                  <Text style={styles.txName}>
+                    {meta.name}
+                    {tx.subcategory ? ` · ${tx.subcategory}` : ''}
+                  </Text>
+                  {!!tx.excludedFromBudget && (
+                    <View style={styles.excludedPill}>
+                      <Text style={styles.excludedPillText}>{t('list.segmentExcluded')}</Text>
+                    </View>
+                  )}
+                </View>
+                {!!tx.memo && <Text style={styles.txMemo}>{tx.memo}</Text>}
               </View>
               <View style={styles.txRight}>
-                <Text style={[styles.txAmt, { color: t.type === 'income' ? LedgerColors.income : LedgerColors.expense }]}>
-                  {t.type === 'income' ? '+' : '-'}
-                  {formatAmount(t.amount)}
+                <Text style={[styles.txAmt, { color: tx.type === 'income' ? LedgerColors.income : LedgerColors.expense }]}>
+                  {tx.type === 'income' ? '+' : '-'}
+                  {formatAmount(tx.amount)}
                 </Text>
-                <Text style={styles.txTime}>{t.time}</Text>
+                <Text style={styles.txTime}>{tx.time}</Text>
               </View>
             </Pressable>
           );

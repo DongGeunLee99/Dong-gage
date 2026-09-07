@@ -41,6 +41,8 @@ export const ICON_OPTIONS: { id: string; Icon: IconComponent }[] = [
   { id: 'leisure', Icon: LeisureIcon },
   { id: 'events', Icon: EventsIcon },
   { id: 'finance', Icon: FinanceIcon },
+  // 카페 아이콘은 Figma에서 손그림으로 만들 예정 — 도착하면 CafeIcon으로 교체.
+  { id: 'cafe', Icon: EtcIcon },
 ];
 
 export const COLOR_OPTIONS: { id: string; hex: string }[] = [
@@ -54,6 +56,7 @@ export const COLOR_OPTIONS: { id: string; hex: string }[] = [
   { id: 'purple', hex: LedgerColors.leisure },
   { id: 'olive', hex: LedgerColors.events },
   { id: 'navy', hex: LedgerColors.finance },
+  { id: 'brown', hex: LedgerColors.cafe },
 ];
 
 export function getIconComponent(iconId: string): IconComponent {

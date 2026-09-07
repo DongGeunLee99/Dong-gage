@@ -54,6 +54,20 @@ async function findUserIdByToken(token: string): Promise<string | null> {
 }
 
 /**
+ * 등록해둔 고정지출 상호명과 일치하는지 먼저 본다 — 사람이 명시적으로 등록한 값이라
+ * 최근-내역 기반 추측(inferCategory)보다 우선한다. 계좌이체 등 merchant_name을
+ * 비워둔 고정지출은 애초에 이 목록에 안 잡히므로 자동매칭을 시도하지 않는다
+ * (AGENTS.md "지출 입력 경로는 카드 SMS + 수기 입력만" 참고).
+ */
+async function matchFixedExpense(userId: string, merchant: string) {
+  const rows = await restGet<{ id: string; category_key: string; subcategory: string | null; merchant_name: string }>(
+    `fixed_expenses?user_id=eq.${userId}&is_on=eq.true&merchant_name=not.is.null&select=id,category_key,subcategory,merchant_name`,
+  );
+  const merchantLower = merchant.toLowerCase();
+  return rows.find((r) => merchantLower.includes(r.merchant_name.toLowerCase())) ?? null;
+}
+
+/**
  * 같은 가맹점을 전에 어떻게 분류했는지 찾아서 그대로 물려준다.
  * 정확히 일치하는 게 없으면 부분 일치(가맹점명이 지점명까지 붙어 오는 경우)로 한 번 더 본다.
  */
@@ -142,7 +156,10 @@ Deno.serve(async (req: Request) => {
     );
     if (duplicateId) return json({ skipped: true, reason: 'duplicate', id: duplicateId });
 
-    const category = await inferCategory(userId, parsed.merchant);
+    const fixedMatch = await matchFixedExpense(userId, parsed.merchant);
+    const category = fixedMatch
+      ? { category_key: fixedMatch.category_key, subcategory: fixedMatch.subcategory, matchedBy: 'fixed' as const }
+      : await inferCategory(userId, parsed.merchant);
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
       method: 'POST',
@@ -171,6 +188,20 @@ Deno.serve(async (req: Request) => {
       headers: REST_HEADERS,
       body: JSON.stringify({ last_used_at: new Date().toISOString() }),
     });
+
+    if (fixedMatch) {
+      await fetch(`${SUPABASE_URL}/rest/v1/fixed_expense_matches?on_conflict=fixed_expense_id,year_month`, {
+        method: 'POST',
+        headers: { ...REST_HEADERS, Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          fixed_expense_id: fixedMatch.id,
+          user_id: userId,
+          year_month: parsed.date.slice(0, 7),
+          matched_transaction_id: inserted?.id,
+          matched_date: parsed.date,
+        }),
+      });
+    }
 
     return json({
       saved: true,

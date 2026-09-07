@@ -59,6 +59,18 @@ export function createStyles(colors: ColorPalette) {
     },
     logoutBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: LedgerColors.expense },
 
+    selfNameRow: { flexDirection: 'column', alignItems: 'stretch', gap: 8 },
+    selfNameHint: { fontSize: 12.5, lineHeight: 18 },
+    selfNameInput: {
+      fontFamily: LedgerFonts.body,
+      fontSize: 14.5,
+      color: colors.ink,
+      backgroundColor: colors.lineLight,
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
+
     smsRow: { flexDirection: 'column', alignItems: 'stretch', gap: 10 },
     smsHint: { fontSize: 12.5, lineHeight: 18 },
     smsToken: {

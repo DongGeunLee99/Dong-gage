@@ -32,7 +32,7 @@ function getSourceBadge(key: SourceKey): { color?: string; Icon?: (props: IconPr
 
 export default function PendingReviewModal() {
   const { t } = useTranslation();
-  const { colors } = useSettings();
+  const { colors, selfName } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { pendingTransactions, approvePending, rejectPending, addTestPendingTransaction } = useTransactions();
   const { getCategoryMeta } = useCategories();
@@ -88,23 +88,20 @@ export default function PendingReviewModal() {
     const pending = pendingTransactions.find((p) => p.id === id);
     if (!pending) return;
     const edit = edits[id];
-    approvePending(
-      id,
-      edit
-        ? {
-            date: pending.date,
-            time: pending.time,
-            type: pending.type,
-            categoryKey: edit.categoryKey ?? pending.categoryKey,
-            subcategory: 'categoryKey' in edit ? edit.subcategory : pending.subcategory,
-            amount: pending.amount,
-            memo: edit.memo?.trim() || pending.memo,
-            note: pending.note,
-            tags: pending.tags,
-            excludedFromBudget: edit.excludedFromBudget ?? pending.excludedFromBudget,
-          }
-        : undefined,
-    );
+    // 화면에 미리 켜둔 예산제외 기본값(내 이름 매칭)도 명시적으로 넘겨야 승인 시 반영된다.
+    const selfNameMatch = !!selfName.trim() && !!pending.memo?.includes(selfName.trim());
+    approvePending(id, {
+      date: pending.date,
+      time: pending.time,
+      type: pending.type,
+      categoryKey: edit?.categoryKey ?? pending.categoryKey,
+      subcategory: edit && 'categoryKey' in edit ? edit.subcategory : pending.subcategory,
+      amount: pending.amount,
+      memo: edit?.memo?.trim() || pending.memo,
+      note: pending.note,
+      tags: pending.tags,
+      excludedFromBudget: edit?.excludedFromBudget ?? (pending.excludedFromBudget || selfNameMatch),
+    });
   };
 
   return (
@@ -146,7 +143,10 @@ export default function PendingReviewModal() {
                 const categoryKey = edit?.categoryKey ?? tx.categoryKey;
                 const subcategory = edit && 'categoryKey' in edit ? edit.subcategory : tx.subcategory;
                 const memo = edit?.memo ?? tx.memo ?? '';
-                const excluded = edit?.excludedFromBudget ?? tx.excludedFromBudget ?? false;
+                // 이체 상대방 이름이 "내 이름"과 같으면(계좌간 이동) 예산제외 토글을 미리 켜둔다.
+                // 최종 반영은 사람이 승인 버튼을 눌러야 하므로 자동 필터링은 아니다.
+                const selfNameMatch = !!selfName.trim() && !!tx.memo?.includes(selfName.trim());
+                const excluded = edit?.excludedFromBudget ?? (tx.excludedFromBudget || selfNameMatch);
                 const meta = getCategoryMeta(categoryKey);
                 return (
                   <View key={tx.id} style={styles.card}>

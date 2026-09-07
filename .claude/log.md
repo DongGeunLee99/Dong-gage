@@ -4,6 +4,65 @@
 
 ---
 
+## 2026-09-08 (1)
+
+### · Phase 2 — 고정지출에 카테고리/상호명 연결, SMS 자동매칭 엔진 추가
+
+> `.claude/implementationPlan_categoryFixedExpense.md` Phase 2 진행. 매칭 우선순위: 고정지출 상호명 매칭 → 기존 최근-내역 매칭(`inferCategory`) → 기본값(기타). 계좌이체 항목(월세 등)은 상호명을 비워두면 자동매칭을 아예 시도 안 함(`AGENTS.md` 원칙). 예산 반영은 코드 추가 없이 자동 — 매칭된 SMS가 승인되면 일반 거래로 들어가서 기존 `monthSummary`가 그대로 잡아줌.
+
+- `supabase/schema_v6_fixed_expense_matching.sql`(신규) — `fixed_expenses`에 `category_key`/`subcategory`/`merchant_name` 추가, `day_of_month`→`expected_day`로 이름·의미 변경(nullable). 기존 4개 행 카테고리 채움(월세→주거·통신>월세/관리비, 통신비→주거·통신>통신비+상호명 `LGUPLUS`, 넷플릭스→주거·통신>구독서비스, 헬스장→**건강>운동**). 매달 매칭 상태 추적용 `fixed_expense_matches` 테이블 신규(unique `fixed_expense_id, year_month`). **아직 미실행**
+- `src/store/fixedExpensesContext.tsx` — `FixedExpense` 타입에 `categoryKey`/`subcategory`/`merchantName`/`expectedDay`(옵셔널) 추가, DB 컬럼명 변경 반영
+- `src/app/fixedExpenseEdit.tsx` — 카테고리 선택 행(기존 `categoryPickerBridge` 재사용) + 상호명 입력 필드 추가, "매월 며칠"을 "예상 결제일"로 변경하고 옵셔널로 전환
+- `src/app/(tabs)/management.tsx` — `f.dayOfMonth`→`f.expectedDay` 참조 변경(타입 변경에 따른 필수 수정), 예상일이 없으면 대신 카테고리명 표시
+- `supabase/functions/sms-ingest/index.ts` — `matchFixedExpense()` 추가(등록된 상호명이 SMS 가맹점명에 부분포함되면 매칭), `inferCategory`보다 먼저 시도. 매칭되면 `fixed_expense_matches`에 upsert(`on_conflict=fixed_expense_id,year_month`)로 이번 달 매칭 기록
+- i18n `fixedExpenseEdit.expectedDay`/`merchantName`/`merchantNamePlaceholder`/`merchantNameHint` ko/en/ja 추가(`dayOfMonth` 키는 제거)
+
+**검증**: `tsc --noEmit`, `expo-doctor`(21/21), `expo export -p ios` 전부 통과. Edge Function은 Deno 런타임이라 이 셋으로 안 잡힘 — 코드 리뷰로만 확인, 배포 전 실기기 테스트 필요.
+
+**남은 것**: ① `schema_v6_fixed_expense_matching.sql` Supabase SQL Editor에서 실행 ② `supabase functions deploy sms-ingest --no-verify-jwt`로 재배포 ③ 넷플릭스/헬스장 상호명은 실제 문자 확인 후 앱에서 채워넣기
+
+## 2026-09-07 (11)
+
+### · 카테고리 재정리 SQL 작성 (기타 비우기/구독서비스 이동/카페 분리) + 카페 색상·아이콘 placeholder
+
+> `.claude/categoryRestructure.md` 계획대로 진행 확정. 카페 소분류는 업체명이 아니라 유형(일반카페/디저트카페/빵집·베이커리)으로 — 소분류가 픽리스트(`categoryPicker.tsx`)라 업체명 단위면 갈 때마다 목록이 늘어남, 업체명 매칭은 나중에 만들 "소분류 상세" 계층(Phase 3)에서 다루기로.
+
+- `src/constants/ledgerColors.ts` — `cafe: '#C9967A'` 추가
+- `src/constants/categories.ts` — `COLOR_OPTIONS`에 `brown`, `ICON_OPTIONS`에 `cafe`(아이콘은 사용자가 Figma에서 만들 예정이라 그 전까지 `EtcIcon` 임시 사용) 추가
+- `supabase/schema_v5_category_cleanup.sql`(신규) — 기타 소분류 비우기, 구독서비스 쇼핑→주거·통신 이동(+기존 거래 3건 재분류), 카페 신규 분리(+기존 식비>카페 거래를 카페>일반카페로 일괄 이동) 전부 포함. **아직 Supabase SQL Editor에서 실행 안 함**
+- `.claude/categoryRestructure.md`, `.claude/implementationPlan_categoryFixedExpense.md` — 결정사항 반영해서 갱신
+
+**검증**: `tsc --noEmit`, `expo-doctor`(21/21), `expo export -p ios` 전부 통과.
+
+## 2026-09-07 (10)
+
+### · 캘린더/리스트 — "가리기" 꺼진 상태에서 예산제외 거래에 "제외됨" 태그 표시
+
+> "예산 제외" 관련 기능(거래별 플래그/내 이름 자동토글/전역 가리기/리스트 제외됨 세그먼트/대시보드 집계)이 여러 개 겹쳐서 예상 못한 동작이 없는지 확인해달라는 요청. 서브에이전트로 관련 파일을 전부 대조 확인한 결과, "가리기" 토글이 꺼져 있으면 예산제외 거래가 캘린더/리스트 화면엔 그대로 보이는데 날짜별 합계·순잔액 계산에서는 (대시보드처럼) 항상 조용히 빠지고 있어서, 화면에 보이는 금액을 손으로 더하면 합계랑 안 맞는 것처럼 보이는 문제를 발견. 대시보드에는 "예산 제외 항목 미포함" 캡션이 있어서 이유를 알 수 있는데 캘린더/리스트엔 그런 설명이 없던 게 원인.
+
+- `src/app/(tabs)/index.tsx`, `src/app/(tabs)/list.tsx` — 거래 행 이름 옆에 `excludedFromBudget`이면 작은 "제외됨" 태그(리스트 탭 세그먼트 라벨 재사용, `list.segmentExcluded`)를 붙임. "제외됨" 세그먼트뿐 아니라 "가리기"가 꺼져서 다른 세그먼트/캘린더에 예산제외 거래가 섞여 보일 때도 합계에 왜 안 잡히는지 바로 알 수 있음
+- `src/styles/calendarStyles.ts`, `src/styles/listStyles.ts` — `txNameRow`(이름+태그 가로 배치)/`excludedPill`/`excludedPillText` 스타일 추가
+- `src/app/(tabs)/index.tsx`의 `selectedTx.map((t) => …)` — 콜백 파라미터명이 `useTranslation()`의 `t`와 겹쳐 있어서 그 안에서 번역 함수를 못 쓰는 걸 발견, `tx`로 리네임(번역 함수 `t`와의 섀도잉 제거)
+
+같이 확인했지만 문제없었던 것: 미지정 내역 정리는 `excludedFromBudget` 값을 안 건드림, 수입 거래 예산제외 토글 저장 정상, 리스트 "제외됨" 세그먼트는 가리기 설정과 무관하게 항상 전체 표시, 검토함 발신처 그룹핑은 예산제외 여부와 무관. `pendingReview.tsx`의 "내 이름" 자동매칭이 원본 문자 상호명만 보고 화면에서 고친 상호명은 안 보는 점은 사소한 한계로 남겨둠(토글이 바로 옆에 있어 수동 수정 가능).
+
+**검증**: `tsc --noEmit`, `expo-doctor`(21/21), `expo export -p ios` 전부 통과. **실기기 미확인** — 태그가 실제로 잘 보이는지, 다른 요소랑 안 겹치는지 확인 필요.
+
+## 2026-09-07 (9)
+
+### · 예산/고정지출 → Supabase 이전 + 이체 자동 예산제외(내 이름 매칭)
+
+> todo 9번("budgets/fixed-expenses도 Supabase로 이전할지 검토") 진행 결정. 겸사겸사 "카카오 로그인으로 실명을 가져와서 이체 내역을 자동 예산제외할 수 있냐"는 질문이 나왔는데, 조사해보니 `authContext.tsx`의 카카오 로그인 scope가 `profile_nickname`(닉네임)뿐이라 은행 문자에 찍히는 실명과 매칭이 안 됨 — 대신 설정에 사용자가 직접 입력하는 "내 이름" 필드를 추가하는 방식으로 결정. 자동 삭제/필터링은 하지 않고 검토 화면 토글 기본값만 미리 켜두는 방식(로그(1) 기존 결정 — "가맹점명 기반 자동 제외는 오탐 위험 때문에 안 함, 검토 단계로 충분"과 배치되지 않게 사람이 항상 최종 승인)
+
+- `supabase/schema_v4_budgets_fixed_expenses.sql`(신규) — `budgets`(overall_budget)/`category_budgets`(category_key, amount)/`fixed_expenses`(day_of_month, is_on 등) 3개 테이블 + RLS, 기존 코드에 하드코딩되어 있던 기본값(월목표 100만원, 식비 80만원/교통 20만원, 월세/통신비/넷플릭스/헬스장)을 그대로 시드 — **아직 Supabase SQL Editor에서 실행 안 함, 사용자가 직접 실행해야 함**
+- `src/store/budgetsContext.tsx`, `src/store/fixedExpensesContext.tsx` — `useState` 로컬 메모리 → `categoriesContext.tsx`와 동일한 패턴(로그인 시 로드, optimistic update로 Supabase 반영, `refresh()` 추가)으로 재작성. 외부에 노출하는 함수 시그니처(`setOverallBudget`/`setCategoryBudget`/`addFixedExpense` 등)는 그대로 유지해서 `budgetEdit.tsx`/`fixedExpenseEdit.tsx`/`dashboard.tsx`/`management.tsx` 쪽 변경 없음
+- `src/store/settingsContext.tsx` — `selfName`/`setSelfName` 추가(테마/언어와 동일하게 AsyncStorage 영속화)
+- `src/app/(tabs)/management.tsx`, `src/styles/managementStyles.ts` — "예산 제외 항목 가리기" 토글 바로 아래에 "내 이름(이체 매칭용)" 텍스트 입력 행 추가
+- `src/app/pendingReview.tsx` — `memo`가 `selfName`을 포함하면 예산제외 토글을 미리 켠 채로 표시(`selfNameMatch`), `handleApprove`도 이 기본값을 명시적으로 넘기도록 수정(안 그러면 토글을 안 건드렸을 때 화면 표시와 달리 실제 저장은 `false`로 나가는 버그가 생겨서 같이 고침)
+- i18n `settings.selfNameHint`/`selfNamePlaceholder` ko/en/ja 추가
+
+**검증**: `tsc --noEmit`, `expo-doctor`(21/21), `expo export -p ios` 전부 통과. **실기기 미확인** — SQL 마이그레이션 실행 전이라 예산/고정지출 화면은 아직 빈 상태로 뜰 것. todo에 남김.
+
 ## 2026-09-07 (8)
 
 ### · 리스트 탭에 "제외됨" 세그먼트 추가 — 예산 제외 목록 전용 뷰

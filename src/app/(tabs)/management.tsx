@@ -1,8 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Animated, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { ChevronRightIcon, FixedIcon, TargetIcon } from '@/components/icons';
 import { UNCATEGORIZED_META } from '@/constants/categories';
@@ -37,8 +37,17 @@ const THEME_OPTIONS: { value: ThemeMode; swatch: string | null }[] = [
 
 export default function ManagementScreen() {
   const { t } = useTranslation();
-  const { colors, themeMode, setThemeMode, language, setLanguage, hideExcludedFromBudget, setHideExcludedFromBudget } =
-    useSettings();
+  const {
+    colors,
+    themeMode,
+    setThemeMode,
+    language,
+    setLanguage,
+    hideExcludedFromBudget,
+    setHideExcludedFromBudget,
+    selfName,
+    setSelfName,
+  } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { overallBudget, categoryBudgets } = useBudgets();
@@ -49,6 +58,9 @@ export default function ManagementScreen() {
   const [isIssuing, setIsIssuing] = useState(false);
   const [tokenCopied, setTokenCopied] = useState(false);
   const { refreshing, justRefreshed, contentOpacity, run, onScrollBeginDrag, onScrollEndDrag } = useRefreshFeedback();
+  const [selfNameDraft, setSelfNameDraft] = useState(selfName);
+
+  useEffect(() => setSelfNameDraft(selfName), [selfName]);
 
   const onRefresh = useCallback(() => run(refreshCategories), [run, refreshCategories]);
 
@@ -112,9 +124,21 @@ export default function ManagementScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
         <View style={styles.section}>
           <View style={styles.groupCard}>
-            <View style={[styles.row, styles.rowLast]}>
+            <View style={styles.row}>
               <Text style={[styles.rowName, styles.rowNameFlex]}>{t('common.hideExcludedFromBudget')}</Text>
               <ToggleSwitch on={hideExcludedFromBudget} onToggle={() => setHideExcludedFromBudget(!hideExcludedFromBudget)} colors={colors} />
+            </View>
+            <View style={[styles.row, styles.rowLast, styles.selfNameRow]}>
+              <Text style={[styles.rowName, styles.mutedText, styles.selfNameHint]}>{t('settings.selfNameHint')}</Text>
+              <TextInput
+                style={styles.selfNameInput}
+                value={selfNameDraft}
+                onChangeText={setSelfNameDraft}
+                onEndEditing={() => setSelfName(selfNameDraft.trim())}
+                placeholder={t('settings.selfNamePlaceholder')}
+                placeholderTextColor={colors.mutedLight}
+                returnKeyType="done"
+              />
             </View>
           </View>
         </View>
@@ -178,7 +202,7 @@ export default function ManagementScreen() {
                 <View style={styles.rowMid}>
                   <Text style={styles.rowName}>{f.name}</Text>
                   <Text style={styles.rowSub}>
-                    {t('management.monthlyDayLabel', { day: f.dayOfMonth })}
+                    {f.expectedDay ? t('management.monthlyDayLabel', { day: f.expectedDay }) : getCategoryMeta(f.categoryKey).name}
                     {!f.on ? ` ${t('management.paused')}` : ''}
                   </Text>
                 </View>

@@ -114,7 +114,10 @@
     "titleAdd": "고정 지출 추가",
     "titleEdit": "고정 지출 수정",
     "namePlaceholder": "이름을 입력하세요",
-    "dayOfMonth": "매월 며칠",
+    "expectedDay": "예상 결제일",
+    "merchantName": "예상 상호명",
+    "merchantNamePlaceholder": "문자에 찍히는 이름 (선택)",
+    "merchantNameHint": "카드 결제 문자에 이 이름이 찍히면 자동으로 카테고리를 채워서 검토 대기에 올려요. 계좌이체라 문자가 안 오면 비워두세요.",
     "deleteFixedExpense": "고정 지출 삭제",
     "deleteConfirmTitle": "이 고정 지출을 삭제할까요?",
     "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다."
@@ -190,6 +193,8 @@
     "smsReissueToken": "다시 발급",
     "smsCopyToken": "복사하기",
     "smsTokenIssuedTitle": "토큰을 복사했어요",
-    "smsTokenIssuedBody": "단축어의 '웹 요청' 액션에서 x-ingest-token 헤더에 붙여넣으세요. 이전 토큰은 더 이상 동작하지 않아요."
+    "smsTokenIssuedBody": "단축어의 '웹 요청' 액션에서 x-ingest-token 헤더에 붙여넣으세요. 이전 토큰은 더 이상 동작하지 않아요.",
+    "selfNameHint": "이체 문자에 이 이름이 상대방으로 찍히면 검토 화면에서 예산제외를 미리 켜둬요",
+    "selfNamePlaceholder": "은행에 등록된 내 이름"
   }
 }
