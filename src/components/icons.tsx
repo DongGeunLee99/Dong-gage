@@ -1,9 +1,40 @@
-import { Circle, Line, Path, Rect, Svg } from 'react-native-svg';
+import type { FC } from 'react';
+import { Circle, Line, Path, Rect, Svg, type SvgProps } from 'react-native-svg';
+
+import RawAlcoholIcon from '../assets/categoryIcons/alcohol.svg';
+import RawBeautyIcon from '../assets/categoryIcons/beauty.svg';
+import RawCafeIcon from '../assets/categoryIcons/cafe.svg';
+import RawCarIcon from '../assets/categoryIcons/car.svg';
+import RawChildcareIcon from '../assets/categoryIcons/childcare.svg';
+import RawClothingIcon from '../assets/categoryIcons/clothing.svg';
+import RawEducationIcon from '../assets/categoryIcons/education.svg';
+import RawEtcIcon from '../assets/categoryIcons/etc.svg';
+import RawEventsIcon from '../assets/categoryIcons/events.svg';
+import RawFinanceIcon from '../assets/categoryIcons/finance.svg';
+import RawFitnessIcon from '../assets/categoryIcons/fitness.svg';
+import RawFoodIcon from '../assets/categoryIcons/food.svg';
+import RawHealthIcon from '../assets/categoryIcons/health.svg';
+import RawHousingIcon from '../assets/categoryIcons/housing.svg';
+import RawLeisureIcon from '../assets/categoryIcons/leisure.svg';
+import RawPetIcon from '../assets/categoryIcons/pet.svg';
+import RawSavingsIcon from '../assets/categoryIcons/savings.svg';
+import RawShoppingIcon from '../assets/categoryIcons/shopping.svg';
+import RawSubscriptionIcon from '../assets/categoryIcons/subscription.svg';
+import RawTransportIcon from '../assets/categoryIcons/transport.svg';
+import RawTravelIcon from '../assets/categoryIcons/travel.svg';
+import RawUtilitiesIcon from '../assets/categoryIcons/utilities.svg';
 
 export type IconProps = {
   size?: number;
   color?: string;
 };
+
+// 카테고리 아이콘 SVG(단색, currentColor)를 기존 size/color prop 인터페이스로 감싼다.
+function svgIcon(Svg: FC<SvgProps>): (props: IconProps) => React.JSX.Element {
+  return function WrappedSvgIcon({ size = 20, color = '#fff' }: IconProps) {
+    return <Svg width={size} height={size} color={color} />;
+  };
+}
 
 const base = (size = 20) => ({
   width: size,
@@ -114,40 +145,9 @@ export function WalletTabIcon({ size, color = '#B4B0A7' }: IconProps) {
   );
 }
 
-export function FoodIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path
-        d="M6 3v6M8 3v3a1 1 0 01-2 0V3M7 9v8"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path d="M14 3s-2 1-2 4 2 3 2 3v6" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-export function TransportIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path d="M4 12V8a2 2 0 012-2h8a2 2 0 012 2v4" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3 12h14v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx="6.5" cy="15.5" r="1.1" fill={color} />
-      <Circle cx="13.5" cy="15.5" r="1.1" fill={color} />
-    </Svg>
-  );
-}
-
-export function ShoppingIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path d="M5 7h10l-1 9a1 1 0 01-1 1H7a1 1 0 01-1-1L5 7z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M8 7V5a2 2 0 014 0v2" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
+export const FoodIcon = svgIcon(RawFoodIcon);
+export const TransportIcon = svgIcon(RawTransportIcon);
+export const ShoppingIcon = svgIcon(RawShoppingIcon);
 
 export function FixedIcon({ size, color = '#fff' }: IconProps) {
   return (
@@ -157,16 +157,7 @@ export function FixedIcon({ size, color = '#fff' }: IconProps) {
   );
 }
 
-export function EtcIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Circle cx="10" cy="10" r="7" stroke={color} strokeWidth={1.7} />
-      <Circle cx="7" cy="10" r={0.9} fill={color} />
-      <Circle cx="10" cy="10" r={0.9} fill={color} />
-      <Circle cx="13" cy="10" r={0.9} fill={color} />
-    </Svg>
-  );
-}
+export const EtcIcon = svgIcon(RawEtcIcon);
 
 export function TrendUpIcon({ size, color = '#006300' }: IconProps) {
   return (
@@ -253,53 +244,24 @@ export function BackspaceIcon({ size, color = '#15130F' }: IconProps) {
   );
 }
 
-export function HousingIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path d="M3 10l7-6 7 6" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M5 9v7a1 1 0 001 1h8a1 1 0 001-1V9" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Line x1="9" y1="17" x2="9" y2="13" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-export function HealthIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Circle cx="10" cy="10" r="7" stroke={color} strokeWidth={1.7} />
-      <Path d="M10 6.5v7M6.5 10h7" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-export function LeisureIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path d="M8 14V5l7-2v9" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx="6" cy="14" r="2" stroke={color} strokeWidth={1.7} />
-      <Circle cx="13" cy="12" r="2" stroke={color} strokeWidth={1.7} />
-    </Svg>
-  );
-}
-
-export function EventsIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Path d="M4 8h12v8a1 1 0 01-1 1H5a1 1 0 01-1-1V8z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3 6h14v2a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
-      <Line x1="10" y1="6" x2="10" y2="17" stroke={color} strokeWidth={1.7} />
-    </Svg>
-  );
-}
-
-export function FinanceIcon({ size, color = '#fff' }: IconProps) {
-  return (
-    <Svg {...base(size)} fill="none">
-      <Circle cx="8" cy="12" r="5" stroke={color} strokeWidth={1.7} />
-      <Circle cx="12.5" cy="8" r="5" stroke={color} strokeWidth={1.7} />
-    </Svg>
-  );
-}
+export const HousingIcon = svgIcon(RawHousingIcon);
+export const HealthIcon = svgIcon(RawHealthIcon);
+export const LeisureIcon = svgIcon(RawLeisureIcon);
+export const EventsIcon = svgIcon(RawEventsIcon);
+export const FinanceIcon = svgIcon(RawFinanceIcon);
+export const CafeIcon = svgIcon(RawCafeIcon);
+export const TravelIcon = svgIcon(RawTravelIcon);
+export const EducationIcon = svgIcon(RawEducationIcon);
+export const PetIcon = svgIcon(RawPetIcon);
+export const BeautyIcon = svgIcon(RawBeautyIcon);
+export const SubscriptionIcon = svgIcon(RawSubscriptionIcon);
+export const SavingsIcon = svgIcon(RawSavingsIcon);
+export const UtilitiesIcon = svgIcon(RawUtilitiesIcon);
+export const ChildcareIcon = svgIcon(RawChildcareIcon);
+export const FitnessIcon = svgIcon(RawFitnessIcon);
+export const ClothingIcon = svgIcon(RawClothingIcon);
+export const CarIcon = svgIcon(RawCarIcon);
+export const AlcoholIcon = svgIcon(RawAlcoholIcon);
 
 export function ChatIcon({ size, color = '#15130F' }: IconProps) {
   return (

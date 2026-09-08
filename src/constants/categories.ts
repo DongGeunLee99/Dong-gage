@@ -1,16 +1,29 @@
 import type { IconProps } from '@/components/icons';
 import {
+  AlcoholIcon,
+  BeautyIcon,
+  CafeIcon,
+  CarIcon,
+  ChildcareIcon,
+  ClothingIcon,
+  EducationIcon,
   EtcIcon,
   EventsIcon,
   FinanceIcon,
+  FitnessIcon,
   FixedIcon,
   FoodIcon,
   HealthIcon,
   HousingIcon,
   LeisureIcon,
+  PetIcon,
+  SavingsIcon,
   ShoppingIcon,
+  SubscriptionIcon,
   TransportIcon,
+  TravelIcon,
   TrendUpIcon,
+  UtilitiesIcon,
 } from '@/components/icons';
 import { LedgerColors } from '@/constants/ledgerColors';
 
@@ -41,8 +54,19 @@ export const ICON_OPTIONS: { id: string; Icon: IconComponent }[] = [
   { id: 'leisure', Icon: LeisureIcon },
   { id: 'events', Icon: EventsIcon },
   { id: 'finance', Icon: FinanceIcon },
-  // 카페 아이콘은 Figma에서 손그림으로 만들 예정 — 도착하면 CafeIcon으로 교체.
-  { id: 'cafe', Icon: EtcIcon },
+  { id: 'cafe', Icon: CafeIcon },
+  { id: 'travel', Icon: TravelIcon },
+  { id: 'education', Icon: EducationIcon },
+  { id: 'pet', Icon: PetIcon },
+  { id: 'beauty', Icon: BeautyIcon },
+  { id: 'subscription', Icon: SubscriptionIcon },
+  { id: 'savings', Icon: SavingsIcon },
+  { id: 'utilities', Icon: UtilitiesIcon },
+  { id: 'childcare', Icon: ChildcareIcon },
+  { id: 'fitness', Icon: FitnessIcon },
+  { id: 'clothing', Icon: ClothingIcon },
+  { id: 'car', Icon: CarIcon },
+  { id: 'alcohol', Icon: AlcoholIcon },
 ];
 
 export const COLOR_OPTIONS: { id: string; hex: string }[] = [

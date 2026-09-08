@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-09 (1)
+
+### · 카테고리 아이콘 22개를 SVG 파일 import 방식으로 전환
+
+> 손코딩 SVG(`react-native-svg` JSX)로 관리하던 카테고리 아이콘을, 사용자가 Figma에서 직접 그려 뽑아준 `.svg` 파일을 정적 import하는 방식으로 전환. 논의 과정에서 두 가지 대안이 나왔다가 폐기됨: ① Figma 커뮤니티 아이콘(배경 원+색 고정) — `categoryEdit.tsx`의 아이콘+색 자유 조합 기능과 충돌해서 폐기, ② `react-icons`/`react-bootstrap-icons` 같은 웹 아이콘 라이브러리 직접 설치 — `AGENTS.md`에 이미 문서화된 대로 웹 DOM 전용이라 RN에서 렌더링 안 됨(재확인만 하고 폐기). 최종적으로 "단색 라인 아이콘 SVG를 받아서 `currentColor`로 치환 → 기존 `color` prop 방식 그대로 유지"로 결정 — 이러면 아이콘+색 자유 조합, 화면 코드(9개 파일) 무수정 둘 다 만족. 테마(light/dark/purple/blue)별 아이콘 세트는 계획 단계에서 폐기 — 카테고리 색은 `LedgerColors` 하나로만 관리되고 테마는 중립색만 바꾸는 구조라(`CLAUDE.md` 디자인 패턴), 애초에 테마별로 대비가 달라질 이유가 없었음.
+>
+> **선정된 라이브러리**: `react-native-svg-transformer`(devDependency, `^1.5.3`) — Expo variant(`react-native-svg-transformer/expo`) 사용. `metro.config.js`에서 `.svg`를 `assetExts`에서 빼고 `sourceExts`에 추가 + `babelTransformerPath` 지정. **주의**: 색 치환(`replaceAttrValues`) 설정은 `metro.config.js`의 `transformer.svgrOptions`가 아니라 프로젝트 루트 `.svgrrc`(JSON) 파일로 해야 실제로 적용됨 — `react-native-svg-transformer`가 내부적으로 `@svgr/core`의 `resolveConfig`(cosmiconfig 기반)로 설정을 찾기 때문. `node -e`로 SVGR 변환 결과를 직접 찍어서 `fill="currentColor"` 치환이 실제로 되는지 확인 후 진행(정적 검사로는 못 잡는 부분).
+>
+> **파일 경로 관련 함정**: `tsconfig.json`의 `@/assets/*` alias가 이미 최상위 `assets/`(앱 아이콘/스플래시)를 가리키고 있어서, 신규 파일을 `src/assets/categoryIcons/`에 두고 `@/assets/categoryIcons/...`로 import하면 엉뚱한 경로(최상위 `assets/categoryIcons/`)로 resolve됨. `src/components/icons.tsx`에서는 상대 경로(`../assets/categoryIcons/...`)로 import해서 회피.
+>
+> **파일**: `src/assets/categoryIcons/*.svg`(22개 — 기본 10개 카테고리 + 커스텀 카테고리용 12개), `src/types/svg.d.ts`(신규, `*.svg` 모듈 타입 선언), `.svgrrc`(신규, `black`/`#000`/`#000000` → `currentColor` 치환), `metro.config.js`, `src/components/icons.tsx`(손코딩 카테고리 아이콘 9개 삭제, SVG 기반 22개로 교체 — `svgIcon()` 어댑터로 기존 `{size, color}` prop 인터페이스 유지), `src/constants/categories.ts`(`ICON_OPTIONS` 11→22개 확장, cafe 임시 아이콘 제거).
+>
+> **검증**: `tsc --noEmit` 통과, `expo export -p ios` 번들링 성공(1443 modules, svg가 asset 목록에 안 뜨고 JS로 컴파일됨 확인), `expo-doctor` 통과(기존부터 있던 expo/expo-router 패치 버전 불일치 1건은 이번 작업과 무관 — 별도 사안). 화면 렌더링(원 배경+아이콘 실제로 색 잘 나오는지)은 실기기 확인 필요 — todo에 남김.
+
 ## 2026-09-08 (1)
 
 ### · Phase 2 — 고정지출에 카테고리/상호명 연결, SMS 자동매칭 엔진 추가
