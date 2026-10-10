@@ -5,8 +5,8 @@
 // 배포: supabase functions deploy ai-advisor
 // 필요 secret: GEMINI_API_KEY (ai-settlement와 공유 — 이미 설정돼 있으면 그대로 재사용)
 //
-// budgets/fixed-expenses는 아직 Supabase가 아니라 로컬 상태라(todo 참고) 이 도구셋엔
-// 넣지 않았다 — categories/transactions만 서버에서 조회 가능하다.
+// budgets/fixed-expenses도 Supabase로 옮겨졌지만(budgetsContext/fixedExpensesContext) 아직
+// 이 어드바이저 도구셋엔 넣지 않았다 — 현재는 categories/transactions만 조회 도구로 노출한다.
 //
 // 인증은 기본값(verify_jwt)을 쓰고, sms-ingest와 달리 service role 대신 호출자의
 // JWT를 그대로 PostgREST에 넘긴다 — 이미 로그인된 사용자가 직접 부르므로 RLS만으로
