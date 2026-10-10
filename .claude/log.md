@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-10-10 (7)
+
+### · 금액 입력을 OS 숫자패드 → 커스텀 계산기 키패드(사칙연산)로 교체
+
+> 사용자 요청: OS 숫자패드 대신 커스텀 키패드로 사칙연산 가능하게. 또 투명 TextInput 방식(Phase 3)이 "포커스가 어디인지 모르겠고, 숫자 드래그하면 오른쪽 빈 공간이 선택됨"이라 싫다고 함 → 커스텀 키패드로 가면 OS 키보드/TextInput 자체를 안 써서 그 문제들이 사라짐. 결정: 왼쪽→오른쪽 순차 계산(계산기식), 탭 시 하단 오버레이, eval 안 쓰는 직접 평가기.
+
+- `src/utils/evalAmount.ts`(신규) — `evalAmount`(식 → 정수 원화, 왼→오 순차, 끝연산자/0나누기/음수/빈식 방어, MAX_AMOUNT 상한), `formatExpr`(숫자 콤마+연산자 공백), `appendDigit`(선행0 처리+자리수 상한)/`appendOperator`(식 비면 불가, 끝 연산자 교체)/`hasOperator`
+- `src/components/amountKeypad.tsx` + `src/styles/amountKeypadStyles.ts`(신규) — 하단 절대배치 키패드. `7 8 9 ÷ / 4 5 6 × / 1 2 3 − / C 0 ⌫ +` + `= / 완료`. 연산자/유틸 키 색 구분, = 은 강조(ink 배경). presentational, `onKey(key)`로 부모에 전달. ⌫는 `BackspaceIcon`
+- `src/app/modal.tsx` — 금액 상태를 `digits`→`expr`(식 문자열), `amount = evalAmount(expr)`. 투명 TextInput/`handleAmountChange` 제거. 금액은 `formatExpr(expr)`를 **Text로만** 표시(표시지연 없음) + 활성 중 밑줄(`amountWrapActive`)로 포커스 표시 + 연산자 있으면 아래 `= N원` 미리보기. 금액 탭→`goToField('amount')`가 OS 키보드 끄고 키패드 염. 메모/노트 포커스 시 키패드 닫음. 퀵추가(+5,000/+10,000)는 식에 `+N` 덧붙임. `handleKeypadKey`로 숫자/연산자/C/⌫/=/완료 처리
+- `src/styles/transactionModalStyles.ts` — `amountHiddenInput` 제거, `amountWrapActive`(밑줄)/`amountPreview` 추가
+
+**검증**: `tsc`/`expo export -p ios`/`expo-doctor`(기존 경고만) 통과. **웹에서 직접 검증 완료**: 금액 탭→키패드 등장, `5000+3000` 입력 시 식 표시 `5,000 + 3,000`+미리보기 `= 8,000원`, `=`로 8,000 확정, `완료`로 닫힘, 포커스 밑줄 동작. (기기에선 눈으로 한 번 더 보면 됨 — 로직은 순수 JS/터치라 웹과 동일)
+
 ## 2026-10-10 (6)
 
 ### · Phase 3 — 완전 자동저장 + 금액 표시 방식 교체 + 웹 프리뷰 활성화 + 모달 중앙 모션

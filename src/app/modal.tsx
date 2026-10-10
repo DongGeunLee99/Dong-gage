@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 
+import { AmountKeypad } from '@/components/amountKeypad';
 import { ApplyMerchantSheet } from '@/components/applyMerchantSheet';
 import { CalendarTabIcon, ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FixedIcon, PencilIcon } from '@/components/icons';
 import { ToggleSwitch } from '@/components/toggleSwitch';
@@ -26,9 +27,9 @@ import { useCategoryPickerBridge } from '@/store/categoryPickerBridge';
 import { useSettings } from '@/store/settingsContext';
 import { formatAmount, parseTags, TODAY, useTransactions, type TransactionType } from '@/store/transactionsContext';
 import { createStyles } from '@/styles/transactionModalStyles';
+import { appendDigit, appendOperator, evalAmount, formatExpr, hasOperator } from '@/utils/evalAmount';
 
-const MAX_DIGITS = 10;
-const MAX_AMOUNT = 9_999_999_999; // MAX_DIGITS 자리수 상한
+const MAX_DIGITS = 10; // 숫자런 자리수 상한
 const QUICK_ADD_AMOUNTS = [5000, 10000] as const;
 const KEYBOARD_ACCESSORY_ID = 'transaction-modal-accessory';
 const FIELD_ORDER = ['amount', 'date', 'memo', 'note'] as const;
@@ -91,7 +92,7 @@ export default function TransactionModal() {
   const isEditing = !!existing;
 
   const [type, setType] = useState<TransactionType>(existing?.type ?? 'expense');
-  const [digits, setDigits] = useState(existing ? String(existing.amount) : '');
+  const [expr, setExpr] = useState(existing ? String(existing.amount) : '');
   const [categoryKey, setCategoryKey] = useState<string>(
     existing && existing.categoryKey !== INCOME_CATEGORY_KEY ? existing.categoryKey : (categories[0]?.key ?? ''),
   );
@@ -104,20 +105,19 @@ export default function TransactionModal() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [activeField, setActiveField] = useState<FieldName | null>(null);
   const [applySheetVisible, setApplySheetVisible] = useState(false);
+  const [amountPadVisible, setAmountPadVisible] = useState(false);
 
   // 사용자가 카테고리를 직접 고른 적 있는지 — 자동채움(prefill)이 사용자가 고른 값을 덮지 않게.
   const categoryTouchedRef = useRef(false);
 
-  const amountInputRef = useRef<TextInput>(null);
   const memoInputRef = useRef<TextInput>(null);
   const noteInputRef = useRef<TextInput>(null);
   const fieldRefs: Partial<Record<FieldName, React.RefObject<TextInput | null>>> = {
-    amount: amountInputRef,
     memo: memoInputRef,
     note: noteInputRef,
   };
 
-  const amount = useMemo(() => (digits ? parseInt(digits, 10) : 0), [digits]);
+  const amount = useMemo(() => evalAmount(expr), [expr]);
   const dateTimeAsDate = useMemo(() => dateTimeStringsToDate(dateStr, timeStr), [dateStr, timeStr]);
   const selectedCategoryMeta = getCategoryMeta(categoryKey);
 
@@ -169,11 +169,17 @@ export default function TransactionModal() {
   const canGoNext = activeIndex >= 0 && activeIndex < FIELD_ORDER.length - 1;
 
   const goToField = (field: FieldName) => {
-    if (field === 'date') {
+    if (field === 'amount') {
       Keyboard.dismiss();
+      setShowTimePicker(false);
+      setAmountPadVisible(true);
+    } else if (field === 'date') {
+      Keyboard.dismiss();
+      setAmountPadVisible(false);
       setShowTimePicker(true);
     } else {
       setShowTimePicker(false);
+      setAmountPadVisible(false);
       fieldRefs[field]?.current?.focus();
     }
     setActiveField(field);
@@ -201,14 +207,43 @@ export default function TransactionModal() {
     router.push({ pathname: '/categoryPicker', params: { current: categoryKey, currentSub: subcategory ?? '' } });
   };
 
-  const handleAmountChange = (text: string) => {
-    const onlyDigits = text.replace(/[^0-9]/g, '');
-    setDigits(onlyDigits.slice(0, MAX_DIGITS));
+  // ④ 금액 빠른 추가(+5,000 / +10,000) — 식에 "+N"으로 덧붙인다.
+  const addAmount = (delta: number) => {
+    setExpr((prev) => {
+      if (!prev) return String(delta);
+      if (/[+\-−×÷]$/u.test(prev)) return prev + String(delta);
+      return `${prev}+${delta}`;
+    });
   };
 
-  // ④ 금액 빠른 추가(+5,000 / +10,000). MAX_DIGITS(10자리) 상한 유지.
-  const addAmount = (delta: number) => {
-    setDigits((prev) => String(Math.min((prev ? parseInt(prev, 10) : 0) + delta, MAX_AMOUNT)));
+  // 커스텀 계산기 키패드 입력 처리.
+  const handleKeypadKey = (key: string) => {
+    if (key === 'done') {
+      // 완료도 =처럼 식을 계산해 결과로 확정한 뒤 키패드를 닫는다.
+      setExpr((prev) => {
+        const r = evalAmount(prev);
+        return r > 0 ? String(r) : prev;
+      });
+      setAmountPadVisible(false);
+      return;
+    }
+    if (key === 'C') {
+      setExpr('');
+      return;
+    }
+    if (key === 'back') {
+      setExpr((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (key === '=') {
+      setExpr((prev) => {
+        const r = evalAmount(prev);
+        return r > 0 ? String(r) : prev;
+      });
+      return;
+    }
+    if (/[0-9]/.test(key)) setExpr((prev) => appendDigit(prev, key, MAX_DIGITS));
+    else setExpr((prev) => appendOperator(prev, key));
   };
 
   // ③ 자동채움: 신규 거래에서 상호명이 과거 거래와 일치하면, 사용자가 안 건드린 카테고리/메모를 최근 값으로 채운다.
@@ -296,30 +331,29 @@ export default function TransactionModal() {
           </Pressable>
         </View>
 
-        {/* 금액은 상태에서 바로 그리는 Text로 표시한다. 편집용 TextInput의 렌더값으로 숫자를 보여주면
-            값이 바뀌어도 네이티브가 다시 안 그려(터치해야 갱신되는) 표시 지연 버그가 난다.
-            그래서 숫자는 Text가 담당하고, 입력/키보드는 투명 TextInput이 겹쳐서 받는다. */}
-        <Pressable style={styles.amountWrap} onPress={() => goToField('amount')}>
+        {/* 금액은 OS 키보드 대신 커스텀 계산기 키패드로 입력한다. 여기선 식을 Text로만 표시(상태에서 바로
+            그리므로 표시 지연 없음). 탭하면 하단에서 키패드가 올라오고, 활성 중엔 밑줄로 포커스를 표시한다. */}
+        <Pressable
+          style={[styles.amountWrap, amountPadVisible && styles.amountWrapActive]}
+          onPress={() => goToField('amount')}>
           <Text
             style={[
               styles.amountInput,
               { color: amount > 0 ? (type === 'income' ? LedgerColors.income : LedgerColors.expense) : colors.mutedLight },
             ]}
-            numberOfLines={1}>
-            {formatAmount(amount)}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.5}>
+            {formatExpr(expr)}
           </Text>
           <Text style={styles.amountUnit}>{t('common.won')}</Text>
-          <TextInput
-            ref={amountInputRef}
-            style={styles.amountHiddenInput}
-            value={digits}
-            onChangeText={handleAmountChange}
-            onFocus={() => setActiveField('amount')}
-            keyboardType="number-pad"
-            inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-            caretHidden
-          />
         </Pressable>
+        {hasOperator(expr) && (
+          <Text style={styles.amountPreview}>
+            = {formatAmount(amount)}
+            {t('common.won')}
+          </Text>
+        )}
 
         <View style={styles.quickAddRow}>
           {QUICK_ADD_AMOUNTS.map((delta) => (
@@ -379,7 +413,10 @@ export default function TransactionModal() {
               placeholderTextColor={colors.mutedLight}
               value={memo}
               onChangeText={setMemo}
-              onFocus={() => setActiveField('memo')}
+              onFocus={() => {
+                setAmountPadVisible(false);
+                setActiveField('memo');
+              }}
               onBlur={handleMemoBlur}
               inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
             />
@@ -392,7 +429,10 @@ export default function TransactionModal() {
               placeholderTextColor={colors.mutedLight}
               value={note}
               onChangeText={setNote}
-              onFocus={() => setActiveField('note')}
+              onFocus={() => {
+                setAmountPadVisible(false);
+                setActiveField('note');
+              }}
               inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
               multiline
             />
@@ -432,6 +472,8 @@ export default function TransactionModal() {
           />
         </InputAccessoryView>
       )}
+
+      <AmountKeypad visible={amountPadVisible} colors={colors} doneLabel={t('common.done')} onKey={handleKeypadKey} />
 
       <ApplyMerchantSheet
         visible={applySheetVisible}

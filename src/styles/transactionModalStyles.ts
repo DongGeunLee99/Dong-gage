@@ -37,19 +37,8 @@ export function createStyles(colors: ColorPalette) {
     amountWrap: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 4, paddingVertical: 4 },
     amountInput: { fontFamily: LedgerFonts.headingBold, fontSize: 42, padding: 0, minWidth: 60, textAlign: 'right' },
     amountUnit: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 20, color: colors.muted },
-    // 숫자 Text 위에 겹쳐 입력/키보드만 받는 투명 인풋. 글자색 투명 + 캐럿 숨김으로 보이지 않는다.
-    amountHiddenInput: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0,
-      color: 'transparent',
-      fontFamily: LedgerFonts.headingBold,
-      fontSize: 42,
-      textAlign: 'right',
-      padding: 0,
-    },
+    amountWrapActive: { borderBottomWidth: 2, borderBottomColor: colors.ink, paddingBottom: 2 },
+    amountPreview: { textAlign: 'center', fontFamily: LedgerFonts.bodySemiBold, fontSize: 13, color: colors.muted, marginTop: 2 },
     quickAddRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
     quickAddBtn: {
       paddingHorizontal: 14,
