@@ -13,6 +13,13 @@
     "refreshed": "更新しました",
     "hideExcludedFromBudget": "予算除外項目を非表示"
   },
+  "toast": {
+    "saveFailed": "保存に失敗しました。あとでもう一度お試しください",
+    "deleted": "削除しました",
+    "deleteFailed": "削除に失敗しました。あとでもう一度お試しください",
+    "applied": "一括適用しました",
+    "applyFailed": "一括適用に失敗しました。あとでもう一度お試しください"
+  },
   "tabs": {
     "calendar": "カレンダー",
     "list": "リスト",
@@ -29,7 +36,11 @@
     "segmentAll": "すべて",
     "segmentExcluded": "除外済み",
     "noTransactionsMonth": "今月の取引はありません",
-    "settleButton": "精算"
+    "settleButton": "精算",
+    "selectedCount": "{{count}}件選択",
+    "selectAll": "すべて選択",
+    "deselectAll": "選択解除",
+    "deleteConfirmTitle": "{{count}}件を削除しますか？"
   },
   "pendingReview": {
     "title": "確認する明細",
@@ -95,7 +106,12 @@
     "excludeFromBudget": "予算から除外",
     "deleteTransaction": "取引を削除",
     "deleteConfirmTitle": "この取引を削除しますか？",
-    "deleteConfirmBody": "削除すると元に戻せません。"
+    "deleteConfirmBody": "削除すると元に戻せません。",
+    "applySameMerchant": "同じ店名{{count}}件にも適用",
+    "applySameMerchantTitle": "同じ店名{{count}}件に適用しますか？",
+    "applySameMerchantBody": "統一する項目を選んでください。この取引も保存されます。",
+    "applyFieldCategory": "カテゴリ",
+    "applyFieldNote": "メモ・タグ"
   },
   "categoryPicker": {
     "title": "カテゴリを選択"

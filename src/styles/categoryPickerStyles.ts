@@ -43,5 +43,25 @@ export function createStyles(colors: ColorPalette) {
     chipSelected: { backgroundColor: colors.ink },
     chipText: { fontFamily: LedgerFonts.bodySemiBold, fontSize: 13, color: colors.ink2 },
     chipTextSelected: { color: colors.bg },
+    addSubRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingBottom: 12,
+    },
+    addSubInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      fontFamily: LedgerFonts.body,
+      fontSize: 13,
+      color: colors.ink,
+    },
+    addSubBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, backgroundColor: colors.ink },
+    addSubBtnText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.bg },
   });
 }

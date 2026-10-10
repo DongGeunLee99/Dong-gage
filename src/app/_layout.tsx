@@ -10,9 +10,11 @@ import { AuthProvider } from '@/store/authContext';
 import { BudgetsProvider } from '@/store/budgetsContext';
 import { CategoryPickerBridgeProvider } from '@/store/categoryPickerBridge';
 import { CategoriesProvider } from '@/store/categoriesContext';
+import { EditModeProvider } from '@/store/editModeContext';
 import { FixedExpensesProvider } from '@/store/fixedExpensesContext';
 import { MonthProvider } from '@/store/monthContext';
 import { SettingsProvider, useSettings } from '@/store/settingsContext';
+import { ToastProvider } from '@/store/toastContext';
 import { TransactionsProvider } from '@/store/transactionsContext';
 
 SplashScreen.preventAutoHideAsync();
@@ -26,13 +28,15 @@ function RootLayoutNav() {
   const { colors } = useSettings();
 
   return (
-    <AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
       <CategoriesProvider>
         <CategoryPickerBridgeProvider>
           <TransactionsProvider>
             <MonthProvider>
               <BudgetsProvider>
                 <FixedExpensesProvider>
+                  <EditModeProvider>
                   <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
@@ -45,13 +49,15 @@ function RootLayoutNav() {
                     <Stack.Screen name="budgetEdit" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="fixedExpenseEdit" options={{ presentation: 'modal' }} />
                   </Stack>
+                  </EditModeProvider>
                 </FixedExpensesProvider>
               </BudgetsProvider>
             </MonthProvider>
           </TransactionsProvider>
         </CategoryPickerBridgeProvider>
       </CategoriesProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

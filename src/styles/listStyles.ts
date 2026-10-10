@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { LedgerFonts } from '@/constants/ledgerColors';
+import { LedgerColors, LedgerFonts } from '@/constants/ledgerColors';
 import type { ColorPalette } from '@/constants/themePalettes';
 
 export function createStyles(colors: ColorPalette) {
@@ -15,6 +15,11 @@ export function createStyles(colors: ColorPalette) {
       paddingBottom: 12,
     },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    editCount: { fontFamily: LedgerFonts.headingBold, fontSize: 16, color: colors.ink },
+    editActionBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+    editActionBtnDisabled: { opacity: 0.4 },
+    editActionText: { fontFamily: LedgerFonts.bodyBold, fontSize: 13, color: colors.ink },
+    editDeleteText: { color: LedgerColors.expense },
     iconBtn: {
       width: 112,
       height: 32,
@@ -80,6 +85,18 @@ export function createStyles(colors: ColorPalette) {
       shadowOffset: { width: 0, height: 2 },
       elevation: 1,
     },
+    txRowSelected: { backgroundColor: colors.lineLight },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 7,
+      borderWidth: 1.6,
+      borderColor: colors.line,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxOn: { backgroundColor: colors.ink, borderColor: colors.ink },
     catCircle: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
     txMid: { flex: 1, gap: 2 },
     txNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },

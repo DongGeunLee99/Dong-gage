@@ -1,5 +1,5 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 
+import { ApplyMerchantSheet } from '@/components/applyMerchantSheet';
 import { CalendarTabIcon, ChevronDownIcon, ChevronRightIcon, ChevronUpIcon, FixedIcon, PencilIcon } from '@/components/icons';
 import { ToggleSwitch } from '@/components/toggleSwitch';
 import { INCOME_CATEGORY_KEY } from '@/constants/categories';
@@ -27,6 +28,8 @@ import { formatAmount, parseTags, TODAY, useTransactions, type TransactionType }
 import { createStyles } from '@/styles/transactionModalStyles';
 
 const MAX_DIGITS = 10;
+const MAX_AMOUNT = 9_999_999_999; // MAX_DIGITS 자리수 상한
+const QUICK_ADD_AMOUNTS = [5000, 10000] as const;
 const KEYBOARD_ACCESSORY_ID = 'transaction-modal-accessory';
 const FIELD_ORDER = ['amount', 'date', 'memo', 'note'] as const;
 type FieldName = (typeof FIELD_ORDER)[number];
@@ -80,7 +83,8 @@ export default function TransactionModal() {
 
   const { id } = useLocalSearchParams<{ id?: string }>();
   const editingId = typeof id === 'string' ? id : undefined;
-  const { addTransaction, updateTransaction, deleteTransaction, getTransactionById } = useTransactions();
+  const { addTransaction, updateTransaction, deleteTransaction, getTransactionById, transactions, bulkUpdateFields } =
+    useTransactions();
   const { categories, getCategoryMeta } = useCategories();
   const { result: pickerResult, setResult: setPickerResult } = useCategoryPickerBridge();
   const existing = editingId ? getTransactionById(editingId) : undefined;
@@ -99,6 +103,10 @@ export default function TransactionModal() {
   const [timeStr, setTimeStr] = useState(existing?.time ?? new Date().toTimeString().slice(0, 5));
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [activeField, setActiveField] = useState<FieldName | null>(null);
+  const [applySheetVisible, setApplySheetVisible] = useState(false);
+
+  // 사용자가 카테고리를 직접 고른 적 있는지 — 자동채움(prefill)이 사용자가 고른 값을 덮지 않게.
+  const categoryTouchedRef = useRef(false);
 
   const amountInputRef = useRef<TextInput>(null);
   const memoInputRef = useRef<TextInput>(null);
@@ -112,6 +120,49 @@ export default function TransactionModal() {
   const amount = useMemo(() => (digits ? parseInt(digits, 10) : 0), [digits]);
   const dateTimeAsDate = useMemo(() => dateTimeStringsToDate(dateStr, timeStr), [dateStr, timeStr]);
   const selectedCategoryMeta = getCategoryMeta(categoryKey);
+
+  const trimmedMemo = memo.trim();
+  // 현재 거래와 상호명(memo)이 정확히 같은 다른 거래들(일괄 적용 대상).
+  const sameMerchant = useMemo(
+    () =>
+      trimmedMemo ? transactions.filter((tx) => tx.id !== editingId && (tx.memo?.trim() ?? '') === trimmedMemo) : [],
+    [transactions, trimmedMemo, editingId],
+  );
+
+  // 자동저장: 모달을 떠날 때(쓸어내림/뒤로) 현재 값을 커밋한다. 취소/삭제는 discard로 커밋을 건너뛴다.
+  const navigation = useNavigation();
+  const discardRef = useRef(false);
+  const commitRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    commitRef.current = () => {
+      if (amount <= 0) return; // 빈 금액: 신규는 생성 안 함 / 기존은 값 유지(저장 스킵)
+      const input = {
+        date: dateStr,
+        time: timeStr,
+        type,
+        categoryKey: type === 'income' ? INCOME_CATEGORY_KEY : categoryKey,
+        subcategory: type === 'expense' ? subcategory : undefined,
+        amount,
+        memo: memo.trim() || undefined,
+        note: note.trim() || undefined,
+        tags: note.trim() ? parseTags(note) : undefined,
+        excludedFromBudget: excludeFromBudget,
+      };
+      if (isEditing && editingId) updateTransaction(editingId, input);
+      else addTransaction(input);
+    };
+  });
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', () => {
+      if (!discardRef.current) commitRef.current();
+    });
+    return unsub;
+  }, [navigation]);
+
+  const cancelAndClose = () => {
+    discardRef.current = true;
+    router.back();
+  };
 
   const activeIndex = activeField ? FIELD_ORDER.indexOf(activeField) : -1;
   const canGoPrev = activeIndex > 0;
@@ -140,6 +191,7 @@ export default function TransactionModal() {
 
   useEffect(() => {
     if (!pickerResult) return;
+    categoryTouchedRef.current = true;
     setCategoryKey(pickerResult.categoryKey);
     setSubcategory(pickerResult.subcategory);
     setPickerResult(null);
@@ -152,6 +204,45 @@ export default function TransactionModal() {
   const handleAmountChange = (text: string) => {
     const onlyDigits = text.replace(/[^0-9]/g, '');
     setDigits(onlyDigits.slice(0, MAX_DIGITS));
+  };
+
+  // ④ 금액 빠른 추가(+5,000 / +10,000). MAX_DIGITS(10자리) 상한 유지.
+  const addAmount = (delta: number) => {
+    setDigits((prev) => String(Math.min((prev ? parseInt(prev, 10) : 0) + delta, MAX_AMOUNT)));
+  };
+
+  // ③ 자동채움: 신규 거래에서 상호명이 과거 거래와 일치하면, 사용자가 안 건드린 카테고리/메모를 최근 값으로 채운다.
+  const handleMemoBlur = () => {
+    if (isEditing) return;
+    const m = memo.trim();
+    if (!m) return;
+    const match = transactions
+      .filter((tx) => (tx.memo?.trim() ?? '') === m)
+      .sort((a, b) => (a.date + a.time < b.date + b.time ? 1 : -1))[0];
+    if (!match) return;
+    if (!categoryTouchedRef.current && type === 'expense' && match.type === 'expense') {
+      setCategoryKey(match.categoryKey);
+      setSubcategory(match.subcategory);
+    }
+    if (!note.trim() && match.note) setNote(match.note);
+  };
+
+  // ②③ 같은 상호명 거래에 현재 값을 일괄 적용(통일). 체크한 항목만 적용하고, 현재 편집 중인 거래도 함께 저장한다.
+  const handleApplySheet = (selection: { category: boolean; note: boolean }) => {
+    setApplySheetVisible(false);
+    const ids = sameMerchant.map((tx) => tx.id);
+    if (ids.length === 0) return;
+    const fields: Parameters<typeof bulkUpdateFields>[1] = {};
+    if (selection.category) {
+      fields.categoryKey = type === 'income' ? INCOME_CATEGORY_KEY : categoryKey;
+      fields.subcategory = type === 'expense' ? subcategory : undefined;
+    }
+    if (selection.note) {
+      fields.note = note.trim() || undefined;
+      fields.tags = note.trim() ? parseTags(note) : undefined;
+    }
+    bulkUpdateFields(ids, fields);
+    router.back(); // 닫히면서 자동저장(beforeRemove)으로 현재 거래도 커밋됨
   };
 
   const handleDateTimeChange = (event: DateTimePickerEvent, selected?: Date) => {
@@ -168,31 +259,6 @@ export default function TransactionModal() {
     setTimeStr(`${hh}:${mm}`);
   };
 
-  const handleSave = () => {
-    if (amount <= 0) {
-      router.back();
-      return;
-    }
-    const input = {
-      date: dateStr,
-      time: timeStr,
-      type,
-      categoryKey: type === 'income' ? INCOME_CATEGORY_KEY : categoryKey,
-      subcategory: type === 'expense' ? subcategory : undefined,
-      amount,
-      memo: memo.trim() || undefined,
-      note: note.trim() || undefined,
-      tags: note.trim() ? parseTags(note) : undefined,
-      excludedFromBudget: excludeFromBudget,
-    };
-    if (isEditing && editingId) {
-      updateTransaction(editingId, input);
-    } else {
-      addTransaction(input);
-    }
-    router.back();
-  };
-
   const handleDelete = () => {
     if (!editingId) return;
     Alert.alert(t('modal.deleteConfirmTitle'), t('modal.deleteConfirmBody'), [
@@ -201,6 +267,7 @@ export default function TransactionModal() {
         text: t('common.delete'),
         style: 'destructive',
         onPress: () => {
+          discardRef.current = true; // 삭제 후엔 자동저장(재추가) 되지 않게
           deleteTransaction(editingId);
           router.back();
         },
@@ -212,13 +279,11 @@ export default function TransactionModal() {
     <View style={styles.sheet}>
       <View style={styles.handle} />
       <View style={styles.sheetHead}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={cancelAndClose}>
           <Text style={styles.btnCancel}>{t('common.cancel')}</Text>
         </Pressable>
         <Text style={styles.sheetTitle}>{isEditing ? t('modal.titleEdit') : t('modal.titleAdd')}</Text>
-        <Pressable onPress={handleSave}>
-          <Text style={styles.btnSave}>{t('common.save')}</Text>
-        </Pressable>
+        <View style={styles.headSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -231,19 +296,38 @@ export default function TransactionModal() {
           </Pressable>
         </View>
 
+        {/* 금액은 상태에서 바로 그리는 Text로 표시한다. 편집용 TextInput의 렌더값으로 숫자를 보여주면
+            값이 바뀌어도 네이티브가 다시 안 그려(터치해야 갱신되는) 표시 지연 버그가 난다.
+            그래서 숫자는 Text가 담당하고, 입력/키보드는 투명 TextInput이 겹쳐서 받는다. */}
         <Pressable style={styles.amountWrap} onPress={() => goToField('amount')}>
+          <Text
+            style={[
+              styles.amountInput,
+              { color: amount > 0 ? (type === 'income' ? LedgerColors.income : LedgerColors.expense) : colors.mutedLight },
+            ]}
+            numberOfLines={1}>
+            {formatAmount(amount)}
+          </Text>
+          <Text style={styles.amountUnit}>{t('common.won')}</Text>
           <TextInput
             ref={amountInputRef}
-            style={[styles.amountInput, { color: type === 'income' ? LedgerColors.income : LedgerColors.expense }]}
-            value={formatAmount(amount)}
+            style={styles.amountHiddenInput}
+            value={digits}
             onChangeText={handleAmountChange}
             onFocus={() => setActiveField('amount')}
             keyboardType="number-pad"
             inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
-            selectTextOnFocus
+            caretHidden
           />
-          <Text style={styles.amountUnit}>{t('common.won')}</Text>
         </Pressable>
+
+        <View style={styles.quickAddRow}>
+          {QUICK_ADD_AMOUNTS.map((delta) => (
+            <Pressable key={delta} style={styles.quickAddBtn} onPress={() => addAmount(delta)}>
+              <Text style={styles.quickAddBtnText}>+{formatAmount(delta)}</Text>
+            </Pressable>
+          ))}
+        </View>
 
         {type === 'expense' && (
           <Pressable style={styles.categoryPill} onPress={openCategoryPicker}>
@@ -296,6 +380,7 @@ export default function TransactionModal() {
               value={memo}
               onChangeText={setMemo}
               onFocus={() => setActiveField('memo')}
+              onBlur={handleMemoBlur}
               inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
             />
           </Pressable>
@@ -313,6 +398,13 @@ export default function TransactionModal() {
             />
           </Pressable>
         </View>
+        {sameMerchant.length > 0 && (
+          <Pressable style={styles.applySameMerchant} onPress={() => setApplySheetVisible(true)}>
+            <Text style={styles.applySameMerchantText}>
+              {t('modal.applySameMerchant', { count: sameMerchant.length })}
+            </Text>
+          </Pressable>
+        )}
         <View style={styles.formCard}>
           <View style={[styles.formRow, styles.formRowLast]}>
             <FixedIcon size={18} color={colors.muted} />
@@ -340,6 +432,14 @@ export default function TransactionModal() {
           />
         </InputAccessoryView>
       )}
+
+      <ApplyMerchantSheet
+        visible={applySheetVisible}
+        count={sameMerchant.length}
+        colors={colors}
+        onCancel={() => setApplySheetVisible(false)}
+        onApply={handleApplySheet}
+      />
     </View>
   );
 }

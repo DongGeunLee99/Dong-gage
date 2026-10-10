@@ -4,6 +4,100 @@
 
 ---
 
+## 2026-10-10 (6)
+
+### · Phase 3 — 완전 자동저장 + 금액 표시 방식 교체 + 웹 프리뷰 활성화 + 모달 중앙 모션
+
+> 사용자가 금액 버그 성질을 정확히 짚음: "숫자(값)는 맞는데 화면에 안 보이다가 터치하면 뜬다" = 제어형 TextInput의 표시 지연(값은 바뀌는데 네이티브가 repaint를 안 함, 포커스 닿아야 갱신). 그래서 Phase 1의 `value={digits}`만으론 기기에서 표시가 늦게 갱신됨. 해결: 숫자를 보여주는 방식 자체를 바꿈. 겸해서 자동저장(Phase 3)도 함께. 사용자 결정: 저장 버튼 제거·취소만, 취소=저장 안 하고 복귀, 기존 금액 0으로 두고 떠나면 저장 스킵.
+
+**웹 프리뷰 활성화(이번부터 1차 검증은 웹에서)**: `app.json` `web.output: "static"` → `"single"`. 과거 "웹 SSR 버그"의 정체 규명 — expo-router web이 `static`이면 라우트를 **Node에서 서버 렌더링**하는데, 홈이 아닌 라우트(예: `/modal`)로 가면 `supabase-js`가 서버에서 `window`/스토리지를 참조하다 `ReferenceError: window is not defined`로 **dev 서버가 죽음**. `single`(SPA, 클라이언트 전용)로 바꾸니 전 라우트 정상. 이 앱은 모바일 전용이라 웹은 확인용이므로 `single`이 적합. **웹에서 직접 검증 가능해짐**(단 로그인·실데이터·토스트/롤백·네이티브 표시지연은 여전히 기기 필요).
+
+**금액 표시 교체(표시 지연 근본 수정)** `src/app/modal.tsx` — 큰 숫자를 편집 TextInput의 렌더값이 아니라 **상태에서 바로 그리는 `<Text>`**로 표시(타이핑·버튼 모두 즉시 반영). 입력/키보드는 그 위에 겹친 **투명 TextInput**(color transparent + caretHidden, `amountHiddenInput` 절대배치)이 받음. 지난 턴의 `= 10,500원` 보조표시 줄은 제거(큰 숫자가 곧 포맷된 값). 웹에서 +5,000 ×3 = 15,000 즉시 표시 확인.
+
+**완전 자동저장** `src/app/modal.tsx` — 저장 버튼 제거(헤더 우측은 `headSpacer`), 취소만 남김. `useNavigation().addListener('beforeRemove')`로 **모달을 떠날 때(쓸어내림/뒤로/일괄적용 후 back) 커밋**. 커밋 함수는 매 렌더마다 `commitRef.current`에 최신 클로저로 갱신(최신 상태 반영). 금액 0이면 커밋 스킵(신규 미생성/기존 값 유지). **취소**(`cancelAndClose`)·**삭제**는 `discardRef=true`로 커밋 건너뜀(삭제 후 재추가 방지). `handleApplySheet`는 `handleSave()` 대신 `router.back()`(닫히며 커밋). `handleSave` 함수·저장버튼 제거. 웹에서 취소→폐기 복귀 확인.
+
+**모달 중앙 모션**(지난 턴 변경, 이번에 기록) `applyMerchantSheet.tsx` — 바텀시트(아래 slide)에서 **화면 중앙 fade**로 변경. 배경 center 정렬 + 카드(maxWidth 420, 그림자), handle 제거.
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시, 삭제) 성공, `expo-doctor`는 기존 "13 packages out of date"만 실패(무관). **웹 검증 완료**: 금액 즉시표시·저장버튼 없음·취소 폐기복귀. **기기 미확인**: ① 기기에서 표시지연 실제 사라졌는지(웹은 원래 지연 없음) ② 자동저장이 실제 DB에 커밋되는지(로그인 필요) ③ 쓸어내림/뒤로 커밋 vs 취소 폐기 ④ 일괄적용 후 현재거래 저장. **주의(설계 한계)**: `beforeRemove` 커밋은 iOS 네이티브 모달 스와이프 닫기에서 발화되는지 기기 확인 필요(안 되면 `gestureEnabled`/대체 훅 검토).
+
+## 2026-10-10 (5)
+
+### · Phase 2 — 같은 상호명 일괄 적용을 Alert → 체크박스 2개 커스텀 바텀시트로
+
+> Phase 1 이후 Phase 2. 사용자 요청대로 iOS `Alert` 3지선다 대신 직접 만든 바텀시트 + 체크박스 2개(카테고리 / 메모·태그, 둘 다 체크 가능).
+
+- `src/components/applyMerchantSheet.tsx`(신규) — RN `Modal`(transparent, slide) 바텀시트. 체크박스 2개(기본 둘 다 체크, 열릴 때마다 초기화), 취소/적용 버튼(둘 다 미체크면 적용 비활성). 배경 탭하면 취소. 체크박스는 기존 `CheckIcon`+`colors.bg` 체크색(테마 무관 대비). 스타일은 `src/styles/applyMerchantSheetStyles.ts`(createStyles(colors))
+- `src/app/modal.tsx` — `handleApplySameMerchant`(Alert) 제거, `applySheetVisible` 상태 + `handleApplySheet(selection)`로 교체. 적용 버튼은 시트를 열고, 시트의 onApply가 체크된 항목만 `bulkUpdateFields`로 적용 + 현재 거래 `handleSave`. 시트는 모달 JSX 끝에 렌더
+- i18n: Alert용 `applyCategoryOnly`/`applyNoteOnly`/`applyBoth` 제거, 체크박스 라벨 `applyFieldCategory`/`applyFieldNote`로 교체(ko/en/ja). `applySameMerchant`/`Title`/`Body`는 유지(시트 제목·설명으로 재사용)
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시, 삭제) 성공, `expo-doctor`는 기존 "13 packages out of date"만 실패(무관). **실기기 미확인** — ① 같은 상호명 있을 때 버튼→바텀시트 ② 체크박스 토글·둘 다 해제 시 적용 비활성 ③ 선택 항목만 일괄 적용 + 현재 거래 저장·닫힘 확인 필요. **남은 Phase 3(완전 자동저장)**.
+
+## 2026-10-10 (4)
+
+### · Phase 1 — 공통 토스트 + 쓰기 실패 시 화면↔DB 롤백 + 금액 입력 버그 근본 수정
+
+> "도희네집 데이터가 되돌아왔다" 조사에서, 모든 쓰기가 낙관적 업데이트 + 에러를 `console.warn`으로만 삼키는 구조라 쓰기 실패(아까 로그의 `JWT issued at future`/PGRST303 등)가 사용자 모르게 넘어가고, 앱 재시작 시 DB 원본이 "되돌아온" 것으로 확인. 사용자 결정으로 3단계 중 Phase 1 먼저. 토스트: 실패는 항상 + 삭제/일괄 성공 시. (휴대폰 시계는 정상이라고 함 → PGRST303은 서버/일시적 요인일 수 있으나, 어느 쪽이든 실패를 표면화하는 게 핵심)
+
+- **공통 토스트** `src/store/toastContext.tsx`(신규) — `ToastProvider`+`useToast().showToast(msg, tone)`. 기존 `RefreshToast` 비주얼(하단 중앙 알약) 재사용, `error` tone은 빨강(`LedgerColors.expense`). 루트 `_layout.tsx` 최상위에 Provider 배치(Categories/Transactions가 안에 들어가 `useToast` 사용 가능). **알려진 한계**: 네이티브 모달(presentation:'modal') 위에선 루트 토스트가 가릴 수 있음 — 현재 삭제/일괄은 모달이 닫히며 토스트가 떠서 문제 없음, 자동저장(Phase 3) 때 재검토
+- **쓰기 실패 롤백** `transactionsContext`/`categoriesContext` — add/update/delete/bulk 전부: 실패 시 `showToast(error)` + `refresh()`로 화면을 DB 기준으로 되돌림(화면↔DB 불일치 제거). 성공 토스트는 삭제(`toast.deleted`)·일괄(`toast.applied`)에만. categoriesContext는 `refresh`가 write 함수들보다 아래 선언돼 있어 **`refresh`를 위로 이동**(TDZ 회피)
+- **금액 입력 버그 근본 수정** `modal.tsx` — 원인: 입력란 `value`가 콤마 포함 포맷 문자열(`formatAmount(amount)`)이라 네이티브 텍스트와 불일치→RN이 네이티브 텍스트를 되돌리며 끝자리(1·10의 자리)를 떨어뜨림. 타이핑/버튼 양쪽에서 재현(앱 재부팅해도). **수정**: 입력란 `value={digits}`(콤마 없는 순수 숫자, 불일치 자체 제거), 콤마 포맷은 그 아래 `= 10,500원` 줄로 분리 표시(`amountFormatted` 스타일). 이전의 `amountFocused` 전환(포커스 순간 포맷↔숫자 바뀌는 레이스)은 제거
+- i18n `toast.saveFailed`/`deleted`/`deleteFailed`/`applied`/`applyFailed` ko/en/ja 추가
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시, 삭제) 성공, `expo-doctor`는 기존 "13 packages out of date"만 실패(무관). **실기기 미확인** — ① 금액 5,500에서 +5,000=10,500(타이핑·버튼 모두 끝자리 안 떨어지는지), 아래 포맷 표시 ② 비행기모드 등으로 저장/삭제 실패시켜 빨간 토스트 뜨고 화면이 DB로 되돌아오는지 ③ 삭제/일괄 성공 시 토스트. **남은 Phase 2(같은상호명 체크박스 커스텀 모달)/Phase 3(완전 자동저장)**.
+
+## 2026-10-10 (3)
+
+### · 거래 수정 개선 — 금액 버튼 버그 수정, 같은상호명 일괄을 3지선다+현재거래 저장으로
+
+> (2) 실기기 확인 중 피드백 3건. 사용자 결정: 같은상호명 적용 범위는 전체(월 무관) 유지, 일괄은 카테고리/메모·태그/둘다 3지선다, 일괄 시 현재 거래도 같이 저장.
+
+- **금액 빠른추가 버그(+5,000 눌렀을 때 자릿수 깨짐)** — 원인은 금액 입력란이 콤마 포함 포맷 문자열을 편집 중 `value`로 그대로 쓰던 것(`value={formatAmount(amount)}`). 버튼으로 프로그램 변경 시 네이티브 인풋의 콤마/커서와 충돌해 자릿수가 깨짐(5,500+5,000이 1,050처럼). 더하기 로직(`addAmount`) 자체는 정상(`5500+5000=10500` 확인). **수정**: `amountFocused` 상태 추가 → 편집 중엔 콤마 없는 순수 `digits`를, 포커스 빠지면 `formatAmount` 포맷을 표시. 편집 중 포맷/커서 충돌이 사라지고 콤마 표시도 유지(resting 상태). `modal.tsx`만 수정
+- **같은 상호명 일괄 → 3지선다 + 현재 거래 저장** — 기존 통합 1버튼(확인 후 카테고리+메모 통째 적용)을, 버튼 누르면 `Alert`로 "카테고리만 통일 / 메모·태그만 통일 / 둘 다 통일 / 취소" 선택하게 변경. 선택 시 `applyAndSave`가 `bulkUpdateFields`(선택 필드만)로 같은 상호명 거래에 적용 + `handleSave`로 현재 편집 거래도 저장하고 모달 닫음. i18n `modal.applyCategoryOnly`/`applyNoteOnly`/`applyBoth` ko/en/ja 추가, `applySameMerchantBody` 문구를 선택 안내로 교체
+- **범위 확인(질문 답변)** — 거래는 로그인 시 월 구분 없이 확정 전체 로드(`transactionsContext` 초기 쿼리에 `.limit`/월필터 없음)라, 같은상호명 일괄/자동채움은 전 기간 대상. 사용자 요청대로 전체 유지
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시, 삭제) 성공, `expo-doctor`는 기존 "13 packages out of date"만 실패(무관). **실기기 미확인** — ① 5,500에서 +5,000 눌러 10,500 되는지(편집 중/후 표시) ② 3지선다 각각 동작 ③ 일괄 적용 후 현재 거래도 저장+모달 닫힘 확인 필요.
+
+## 2026-10-10 (2)
+
+### · 거래 수정 개선 4종 — 소분류 즉석추가 / 같은상호명 일괄적용 / 상호명 자동채움 / 금액 빠른추가
+
+> todo "목록/거래 수정 개선" ①②③④를 A안으로 한 배치 처리(⑤ 자동저장은 별도). 사용자 결정: (가) 미래 자동승계는 **클라이언트 모달만**, SMS 서버 승계는 별도 todo (나) ②③ 일괄은 **통합 한 버튼** (다) 매칭은 `memo` **정확 일치**(trim).
+
+**사전 구조 확인**: 소분류는 `categories` 테이블 `subcategories: string[]` 컬럼(카테고리별 공용, `categoryPicker`가 칩으로 표시·`updateCategory`로 수정). 메모/태그는 거래의 `note` 하나(자유메모+#태그, 저장 시 `parseTags(note)`로 `tags` 생성).
+
+- **① 소분류 즉석 추가** — `categoryPicker.tsx`: 카테고리를 펼치면 칩 아래 텍스트 인풋+추가 버튼. 입력 시 `updateCategory`로 그 카테고리 `subcategories`에 append(categoryEdit과 동일 저장 경로, 전역 재사용) 후 바로 그 소분류 선택. `categoryPickerStyles.ts`에 `addSubRow`/`addSubInput`/`addSubBtn`. i18n은 기존 `categoryEdit.subcategoryPlaceholder`+`common.add` 재사용(신규 키 0)
+- **②③ 같은 상호명 일괄 적용** — `modal.tsx`: 현재 거래와 `memo`가 정확히 같은 다른 거래(`sameMerchant`)가 있으면 "같은 상호명 N건에도 적용" 버튼 노출(날짜/메모 카드 아래). 누르면 확인 Alert 후 `bulkUpdateFields`로 카테고리+소분류+메모(note)+태그를 현재 값으로 통일. `transactionsContext`에 **`bulkUpdateFields(ids, fields)` 신규**(넘긴 필드만 갱신, `'subcategory' in fields` 식으로 undefined→null 구분, 기존 `bulkUpdateCategory`는 uncategorizedCleanup에서 쓰므로 그대로 둠)
+- **③ 상호명 자동채움(미래 승계·클라이언트)** — `modal.tsx`: 신규 거래에서 상호명 입력란 `onBlur` 시 과거 동일 `memo` 최신 거래를 찾아, **사용자가 안 건드린** 카테고리/빈 메모를 채움. 카테고리 손댔는지는 `categoryTouchedRef`(picker 결과 반영 effect에서 true)로 판별해 사용자 선택을 안 덮음. 편집(기존 거래)엔 미적용
+- **④ 금액 빠른 추가** — `modal.tsx`: 금액 입력란 아래 `+5,000`/`+10,000` 알약 버튼(`QUICK_ADD_AMOUNTS`), 누르면 현재 금액에 가산(`MAX_AMOUNT=9,999,999,999` 상한). `transactionModalStyles.ts`에 `quickAddRow`/`quickAddBtn`/`applySameMerchant` 스타일
+- i18n `modal.applySameMerchant`/`applySameMerchantTitle`/`applySameMerchantBody` ko/en/ja 추가
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시, 삭제) 번들링 성공, `expo-doctor`는 기존 "13 packages out of date"만 실패(무관). **실기기 미확인** — ① 소분류 추가·선택·전역 반영 ② 같은상호명 버튼 노출·일괄 통일 ③ 신규 거래 상호명 입력 후 자동채움(기존 입력 안 덮는지) ④ 금액 가산 상한. 특히 ③ onBlur 타이밍/자동채움 체감은 화면에서 봐야 함.
+
+**남은 것(가 결정으로 분리)**: SMS로 들어온 결제에 과거 동일 상호명의 메모/태그를 자동 승계하려면 `sms-ingest`의 `inferCategory`를 note/tags까지 확장+재배포 필요(정적검증 불가, 실문자 테스트 필요) — todo에 별도 항목으로.
+
+## 2026-10-10 (1)
+
+### · 리스트 탭 편집모드 — long-press 다중 선택 일괄 삭제 + 편집 중 탭 이동 잠금
+
+> todo "목록/거래 수정 개선" 1번. 리스트 거래를 길게 눌러 편집모드 진입 → 여러 건 체크 선택 → 일괄 삭제. 사용자 요청으로 **편집모드 동안에는 상단 탭(스와이프/탭바 버튼) 이동을 막음**. A(삭제 확인 문구)는 건수+되돌릴 수 없음으로.
+
+**탭 이동 잠금 설계 — 왜 전역 상태가 필요했나**: 4개 탭은 `createMaterialTopTabNavigator`(상단 탭, 스와이프 가능)이고, 스와이프/탭바는 리스트 화면이 아니라 `(tabs)/_layout.tsx`(네비게이터)가 쥐고 있어서, 리스트의 편집모드 상태를 레이아웃도 알아야 했음. 테마/언어 같은 영속 설정과 성격이 다른 **일시적** 상태라 `settingsContext`(AsyncStorage)에 안 넣고 별도 컨텍스트로 분리.
+- **API 사전 확인(AGENTS.md 원칙)**: 코드 작성 전 설치된 v57 번들 타입 정의로 `swipeEnabled?: boolean`(옵션)과 `tabPress`(`canPreventDefault: true`) 존재를 직접 확인(`node_modules/expo-router/build/react-navigation/material-top-tabs/types.d.ts`). 둘 다 지원돼서 커스텀 tabBar 없이 `screenOptions.swipeEnabled` + `screenListeners.tabPress` preventDefault로 처리.
+- **타입 함정**: `withLayoutContext`로 감싼 `MaterialTopTabs`의 `screenListeners.tabPress` 콜백 파라미터 `e`가 암묵적 any로 떨어져(TS7006) `tsc` 실패 → `e: { preventDefault: () => void }`로 최소 타입 명시(preventDefault만 쓰므로 과한 타입 import 불필요).
+
+**신규 파일**
+- `src/store/editModeContext.tsx` — `EditModeProvider` + `useEditMode()`(boolean + setter, 영속화 없음). 프로젝트의 "도메인별 Context + 훅" 패턴 그대로
+
+**수정 파일**
+- `src/app/_layout.tsx` — Provider 트리에 `EditModeProvider` 추가(FixedExpensesProvider 안, Stack 바깥)
+- `src/app/(tabs)/_layout.tsx` — `swipeEnabled={!editMode}` + `tabPress` preventDefault
+- `src/store/transactionsContext.tsx` — `bulkDelete(ids)` 신규(`bulkUpdateCategory`와 동일 패턴: 옵티미스틱 filter + `.in('id', ids)` delete, 실패 시 `refresh()`). 타입/value/deps 등록
+- `src/app/(tabs)/list.tsx` — 편집 상태(`selectedIds`)·long-press 진입(300ms)·체크박스·선택행 하이라이트·편집 액션바(건수/전체선택·해제/삭제/취소)·삭제 확인 Alert. 편집모드 땐 당겨서 새로고침 비활성(선택 꼬임 방지). **월/세그먼트가 바뀌면 `useEffect`로 편집모드+선택 초기화**(안 보이는 거래가 선택에 남지 않게)
+- `src/styles/listStyles.ts` — `editCount`/`editActionBtn`/`editActionBtnDisabled`/`editActionText`/`editDeleteText`/`txRowSelected`/`checkbox`/`checkboxOn`. 선택행은 border 대신 배경색(`lineLight`)으로 하이라이트(border는 1.6px 레이아웃 밀림 생김). 체크 색은 `colors.bg`(ink 배경 위에서 테마 무관하게 보이게)
+- i18n `list.selectedCount`/`selectAll`/`deselectAll`/`deleteConfirmTitle` ko/en/ja. 확인 본문은 기존 `modal.deleteConfirmBody` 재사용, 삭제/취소는 `common.*` 재사용
+
+**검증**: `tsc --noEmit` 통과, `expo export -p ios`(임시 디렉터리, 삭제) 번들링 성공, `expo-doctor`의 유일한 실패는 "13 packages out of date"(SDK57 패치 최신화 안내, 서버 켤 때부터 있던 기존 사안·이번 변경 무관). **실기기 미확인** — ① long-press 진입 ② 편집 중 스와이프·탭바 눌러도 이동 안 되는지 ③ 다중선택/전체선택/일괄삭제 ④ 취소/월·세그먼트 변경 시 해제 확인 필요. 특히 탭 이동 잠금은 `tsc`/`export`로 못 잡는 런타임 동작이라 실기기 확인 필수(SDK 업그레이드 때 유사 전례 있음).
+
 ## 2026-09-09 (1)
 
 ### · 카테고리 아이콘 22개를 SVG 파일 import 방식으로 전환

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LayoutAnimation } from 'react-native';
 
 import {
@@ -12,6 +13,7 @@ import {
 } from '@/constants/categories';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/authContext';
+import { useToast } from '@/store/toastContext';
 
 type CategoryRow = {
   key: string;
@@ -49,6 +51,8 @@ const CategoriesContext = createContext<CategoriesContextValue | null>(null);
 
 export function CategoriesProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
+  const { t } = useTranslation();
+  const { showToast } = useToast();
   const userId = session?.user.id;
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,6 +87,22 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
     };
   }, [userId]);
 
+  /** 당겨서 새로고침 등 수동 갱신용. 쓰기 실패 시 화면을 DB 기준으로 되돌리는 데도 쓴다. */
+  const refresh = useCallback(async () => {
+    if (!userId) return;
+    const { data, error } = await supabase
+      .from('categories')
+      .select('key, name, color_id, icon_id, subcategories, sort_order')
+      .eq('user_id', userId)
+      .order('sort_order', { ascending: true });
+    if (error) {
+      console.warn('Failed to refresh categories', error);
+      return;
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCategories((data ?? []).map(fromRow));
+  }, [userId]);
+
   const addCategory = useCallback(
     (input: CategoryInput) => {
       if (!userId) return;
@@ -100,10 +120,14 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
           sort_order: categories.length,
         })
         .then(({ error }) => {
-          if (error) console.warn('Failed to add category', error);
+          if (error) {
+            console.warn('Failed to add category', error);
+            showToast(t('toast.saveFailed'), 'error');
+            refresh();
+          }
         });
     },
-    [userId, categories.length],
+    [userId, categories.length, refresh, showToast, t],
   );
 
   const updateCategory = useCallback(
@@ -116,10 +140,14 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
         .eq('user_id', userId)
         .eq('key', key)
         .then(({ error }) => {
-          if (error) console.warn('Failed to update category', error);
+          if (error) {
+            console.warn('Failed to update category', error);
+            showToast(t('toast.saveFailed'), 'error');
+            refresh();
+          }
         });
     },
-    [userId],
+    [userId, refresh, showToast, t],
   );
 
   const deleteCategory = useCallback(
@@ -132,27 +160,17 @@ export function CategoriesProvider({ children }: { children: React.ReactNode }) 
         .eq('user_id', userId)
         .eq('key', key)
         .then(({ error }) => {
-          if (error) console.warn('Failed to delete category', error);
+          if (error) {
+            console.warn('Failed to delete category', error);
+            showToast(t('toast.deleteFailed'), 'error');
+            refresh();
+            return;
+          }
+          showToast(t('toast.deleted'));
         });
     },
-    [userId],
+    [userId, refresh, showToast, t],
   );
-
-  /** 당겨서 새로고침 등 수동 갱신용. */
-  const refresh = useCallback(async () => {
-    if (!userId) return;
-    const { data, error } = await supabase
-      .from('categories')
-      .select('key, name, color_id, icon_id, subcategories, sort_order')
-      .eq('user_id', userId)
-      .order('sort_order', { ascending: true });
-    if (error) {
-      console.warn('Failed to refresh categories', error);
-      return;
-    }
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setCategories((data ?? []).map(fromRow));
-  }, [userId]);
 
   const getCategoryById = useCallback((key: string) => categories.find((c) => c.key === key), [categories]);
 

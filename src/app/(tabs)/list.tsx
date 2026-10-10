@@ -1,14 +1,15 @@
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Animated, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
-import { ChevronLeftIcon, ChevronRightIcon, SparkleIcon } from '@/components/icons';
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, SparkleIcon } from '@/components/icons';
 import { RefreshToast } from '@/components/refreshToast';
 import { LedgerColors } from '@/constants/ledgerColors';
 import { useRefreshFeedback } from '@/hooks/useRefreshFeedback';
 import { formatFullDateWithWeekday, formatYearMonth } from '@/i18n/format';
 import { useCategories } from '@/store/categoriesContext';
+import { useEditMode } from '@/store/editModeContext';
 import { useMonth } from '@/store/monthContext';
 import { useSettings } from '@/store/settingsContext';
 import { TODAY, formatAmount, getMonthTransactions, useTransactions, type Transaction } from '@/store/transactionsContext';
@@ -21,9 +22,11 @@ export default function ListScreen() {
   const { t, i18n } = useTranslation();
   const { colors, hideExcludedFromBudget } = useSettings();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { transactions, refresh: refreshTransactions } = useTransactions();
+  const { transactions, bulkDelete, refresh: refreshTransactions } = useTransactions();
   const { getCategoryMeta, refresh: refreshCategories } = useCategories();
   const { year, month, goMonth, goToToday, isOnToday } = useMonth();
+  const { editMode, setEditMode } = useEditMode();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { refreshing, justRefreshed, contentOpacity, run, onScrollBeginDrag, onScrollEndDrag } = useRefreshFeedback();
 
   const onRefresh = useCallback(
@@ -76,28 +79,101 @@ export default function ListScreen() {
       .filter((group) => group.items.length > 0);
   }, [transactions, year, month, segment, hideExcludedFromBudget]);
 
+  // 현재 화면에 보이는 거래 id (전체 선택/해제 기준). 선택은 항상 이 범위 안에서만 유지된다.
+  const visibleIds = useMemo(() => groups.flatMap((g) => g.items.map((i) => i.id)), [groups]);
+  const allSelected = visibleIds.length > 0 && selectedIds.size === visibleIds.length;
+
+  // 월/세그먼트(보이는 범위)가 바뀌면 편집모드와 선택을 초기화 — 안 보이는 거래가 선택에 남지 않게.
+  useEffect(() => {
+    setEditMode(false);
+    setSelectedIds(new Set());
+  }, [year, month, segment, setEditMode]);
+
+  const exitEditMode = useCallback(() => {
+    setEditMode(false);
+    setSelectedIds(new Set());
+  }, [setEditMode]);
+
+  const enterEditMode = useCallback(
+    (id: string) => {
+      setEditMode(true);
+      setSelectedIds(new Set([id]));
+    },
+    [setEditMode],
+  );
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => (prev.size === visibleIds.length ? new Set() : new Set(visibleIds)));
+  }, [visibleIds]);
+
+  const handleBulkDelete = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    Alert.alert(t('list.deleteConfirmTitle', { count: ids.length }), t('modal.deleteConfirmBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          bulkDelete(ids);
+          exitEditMode();
+        },
+      },
+    ]);
+  }, [selectedIds, bulkDelete, exitEditMode, t]);
+
   return (
     <View style={styles.root}>
-      <View style={[styles.header, { marginTop: TOP_OFFSET }]}>
-        <View style={styles.monthNav}>
-          <Pressable hitSlop={8} onPress={() => goMonth(-1)}>
-            <ChevronLeftIcon color={colors.ink2} />
-          </Pressable>
-          <Text style={styles.monthLabel}>{formatYearMonth(year, month, language)}</Text>
-          <Pressable hitSlop={8} onPress={() => goMonth(1)}>
-            <ChevronRightIcon color={colors.ink2} />
-          </Pressable>
-          <Pressable style={[styles.todayBtn, isOnToday && styles.todayBtnDim]} onPress={goToToday} hitSlop={4}>
-            <Text style={[styles.todayBtnText, isOnToday && styles.todayBtnTextDim]}>{t('common.today')}</Text>
-          </Pressable>
+      {editMode ? (
+        <View style={[styles.header, { marginTop: TOP_OFFSET }]}>
+          <Text style={styles.editCount}>{t('list.selectedCount', { count: selectedIds.size })}</Text>
+          <View style={styles.headerActions}>
+            <Pressable style={styles.editActionBtn} hitSlop={8} onPress={toggleSelectAll}>
+              <Text style={styles.editActionText}>{allSelected ? t('list.deselectAll') : t('list.selectAll')}</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.editActionBtn, selectedIds.size === 0 && styles.editActionBtnDisabled]}
+              hitSlop={8}
+              onPress={handleBulkDelete}
+              disabled={selectedIds.size === 0}>
+              <Text style={[styles.editActionText, styles.editDeleteText]}>{t('common.delete')}</Text>
+            </Pressable>
+            <Pressable style={styles.editActionBtn} hitSlop={8} onPress={exitEditMode}>
+              <Text style={styles.editActionText}>{t('common.cancel')}</Text>
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.headerActions}>
-          <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/aiSettlement')}>
-            <SparkleIcon size={18} color={colors.ink} />
-            <Text style={styles.iconBtnText}>{t('list.settleButton')}</Text>
-          </Pressable>
+      ) : (
+        <View style={[styles.header, { marginTop: TOP_OFFSET }]}>
+          <View style={styles.monthNav}>
+            <Pressable hitSlop={8} onPress={() => goMonth(-1)}>
+              <ChevronLeftIcon color={colors.ink2} />
+            </Pressable>
+            <Text style={styles.monthLabel}>{formatYearMonth(year, month, language)}</Text>
+            <Pressable hitSlop={8} onPress={() => goMonth(1)}>
+              <ChevronRightIcon color={colors.ink2} />
+            </Pressable>
+            <Pressable style={[styles.todayBtn, isOnToday && styles.todayBtnDim]} onPress={goToToday} hitSlop={4}>
+              <Text style={[styles.todayBtnText, isOnToday && styles.todayBtnTextDim]}>{t('common.today')}</Text>
+            </Pressable>
+          </View>
+          <View style={styles.headerActions}>
+            <Pressable style={styles.iconBtn} hitSlop={8} onPress={() => router.push('/aiSettlement')}>
+              <SparkleIcon size={18} color={colors.ink} />
+              <Text style={styles.iconBtnText}>{t('list.settleButton')}</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
       <View style={styles.segmented}>
         {SEGMENTS.map((seg) => (
           <Pressable
@@ -115,7 +191,11 @@ export default function ListScreen() {
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={onScrollBeginDrag}
           onScrollEndDrag={onScrollEndDrag}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />}>
+          refreshControl={
+            editMode ? undefined : (
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} colors={[colors.ink]} />
+            )
+          }>
         {groups.length === 0 && <Text style={styles.emptyText}>{t('list.noTransactionsMonth')}</Text>}
         {groups.map((group) => (
           <View key={group.date} style={styles.dayGroup}>
@@ -131,11 +211,23 @@ export default function ListScreen() {
             </View>
             {group.items.map((item) => {
               const meta = getCategoryMeta(item.categoryKey);
+              const selected = selectedIds.has(item.id);
               return (
                 <Pressable
                   key={item.id}
-                  style={styles.txRow}
-                  onPress={() => router.push({ pathname: '/modal', params: { id: item.id } })}>
+                  style={[styles.txRow, editMode && selected && styles.txRowSelected]}
+                  onPress={() =>
+                    editMode ? toggleSelect(item.id) : router.push({ pathname: '/modal', params: { id: item.id } })
+                  }
+                  onLongPress={() => {
+                    if (!editMode) enterEditMode(item.id);
+                  }}
+                  delayLongPress={300}>
+                  {editMode && (
+                    <View style={[styles.checkbox, selected && styles.checkboxOn]}>
+                      {selected && <CheckIcon size={16} color={colors.bg} />}
+                    </View>
+                  )}
                   <View style={[styles.catCircle, { backgroundColor: meta.color }]}>
                     <meta.Icon />
                   </View>

@@ -13,6 +13,13 @@
     "refreshed": "새로고침 완료",
     "hideExcludedFromBudget": "예산 제외 항목 가리기"
   },
+  "toast": {
+    "saveFailed": "저장에 실패했어요. 잠시 후 다시 시도해주세요",
+    "deleted": "삭제했어요",
+    "deleteFailed": "삭제에 실패했어요. 잠시 후 다시 시도해주세요",
+    "applied": "일괄 적용했어요",
+    "applyFailed": "일괄 적용에 실패했어요. 잠시 후 다시 시도해주세요"
+  },
   "tabs": {
     "calendar": "캘린더",
     "list": "리스트",
@@ -29,7 +36,11 @@
     "segmentAll": "전체",
     "segmentExcluded": "제외됨",
     "noTransactionsMonth": "이 달의 거래 내역이 없습니다",
-    "settleButton": "정산하기"
+    "settleButton": "정산하기",
+    "selectedCount": "{{count}}건 선택",
+    "selectAll": "전체 선택",
+    "deselectAll": "선택 해제",
+    "deleteConfirmTitle": "{{count}}건을 삭제할까요?"
   },
   "pendingReview": {
     "title": "검토할 내역",
@@ -95,7 +106,12 @@
     "excludeFromBudget": "예산에서 제외",
     "deleteTransaction": "거래 삭제",
     "deleteConfirmTitle": "거래를 삭제할까요?",
-    "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다."
+    "deleteConfirmBody": "삭제하면 되돌릴 수 없습니다.",
+    "applySameMerchant": "같은 상호명 {{count}}건에도 적용",
+    "applySameMerchantTitle": "같은 상호명 {{count}}건에 적용할까요?",
+    "applySameMerchantBody": "무엇을 통일할지 선택하세요. 현재 거래도 함께 저장돼요.",
+    "applyFieldCategory": "카테고리",
+    "applyFieldNote": "메모·태그"
   },
   "categoryPicker": {
     "title": "카테고리 선택"

@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LayoutAnimation } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/authContext';
+import { useToast } from '@/store/toastContext';
 
 export type TransactionType = 'expense' | 'income';
 
@@ -91,6 +93,11 @@ type TransactionsContextValue = {
   addTransaction: (input: AddTransactionInput) => void;
   updateTransaction: (id: string, input: AddTransactionInput) => void;
   bulkUpdateCategory: (ids: string[], categoryKey: string, subcategory?: string) => Promise<void>;
+  bulkUpdateFields: (
+    ids: string[],
+    fields: Partial<Pick<Transaction, 'categoryKey' | 'subcategory' | 'note' | 'tags'>>,
+  ) => Promise<void>;
+  bulkDelete: (ids: string[]) => Promise<void>;
   deleteTransaction: (id: string) => void;
   getTransactionById: (id: string) => Transaction | undefined;
   getPendingById: (id: string) => PendingTransaction | undefined;
@@ -105,6 +112,8 @@ const TransactionsContext = createContext<TransactionsContextValue | null>(null)
 
 export function TransactionsProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
+  const { t } = useTranslation();
+  const { showToast } = useToast();
   const userId = session?.user.id;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pendingTransactions, setPendingTransactions] = useState<PendingTransaction[]>([]);
@@ -197,13 +206,14 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         .then(({ data, error }) => {
           if (error || !data) {
             console.warn('Failed to add transaction', error);
-            setTransactions((prev) => prev.filter((t) => t.id !== tempId));
+            setTransactions((prev) => prev.filter((tx) => tx.id !== tempId));
+            showToast(t('toast.saveFailed'), 'error');
             return;
           }
-          setTransactions((prev) => prev.map((t) => (t.id === tempId ? fromRow(data) : t)));
+          setTransactions((prev) => prev.map((tx) => (tx.id === tempId ? fromRow(data) : tx)));
         });
     },
-    [userId],
+    [userId, showToast, t],
   );
 
   const updateTransaction = useCallback(
@@ -216,10 +226,14 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         .eq('user_id', userId)
         .eq('id', id)
         .then(({ error }) => {
-          if (error) console.warn('Failed to update transaction', error);
+          if (error) {
+            console.warn('Failed to update transaction', error);
+            showToast(t('toast.saveFailed'), 'error');
+            refresh(); // 화면을 DB 기준으로 되돌려 화면↔DB 불일치 방지
+          }
         });
     },
-    [userId],
+    [userId, refresh, showToast, t],
   );
 
   /** 미지정(카테고리가 삭제되어 붕 뜬) 거래 여러 건을 골라 한 번에 카테고리를 지정한다. */
@@ -234,26 +248,78 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
         .in('id', ids);
       if (error) {
         console.warn('Failed to bulk update category', error);
+        showToast(t('toast.applyFailed'), 'error');
         await refresh();
+        return;
       }
+      showToast(t('toast.applied'));
     },
-    [userId, refresh],
+    [userId, refresh, showToast, t],
+  );
+
+  /** 같은 상호명 거래 일괄 수정용. categoryKey/subcategory/note/tags 중 넘긴 필드만 갱신한다. */
+  const bulkUpdateFields = useCallback(
+    async (ids: string[], fields: Partial<Pick<Transaction, 'categoryKey' | 'subcategory' | 'note' | 'tags'>>) => {
+      if (!userId || ids.length === 0) return;
+      setTransactions((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, ...fields } : t)));
+      const row: Record<string, unknown> = {};
+      if (fields.categoryKey !== undefined) row.category_key = fields.categoryKey;
+      if ('subcategory' in fields) row.subcategory = fields.subcategory ?? null;
+      if ('note' in fields) row.note = fields.note ?? null;
+      if ('tags' in fields) row.tags = fields.tags ?? [];
+      if (Object.keys(row).length === 0) return;
+      const { error } = await supabase.from('transactions').update(row).eq('user_id', userId).in('id', ids);
+      if (error) {
+        console.warn('Failed to bulk update fields', error);
+        showToast(t('toast.applyFailed'), 'error');
+        await refresh();
+        return;
+      }
+      showToast(t('toast.applied'));
+    },
+    [userId, refresh, showToast, t],
+  );
+
+  const bulkDelete = useCallback(
+    async (ids: string[]) => {
+      if (!userId || ids.length === 0) return;
+      setTransactions((prev) => prev.filter((tx) => !ids.includes(tx.id)));
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('user_id', userId)
+        .in('id', ids);
+      if (error) {
+        console.warn('Failed to bulk delete transactions', error);
+        showToast(t('toast.deleteFailed'), 'error');
+        await refresh();
+        return;
+      }
+      showToast(t('toast.deleted'));
+    },
+    [userId, refresh, showToast, t],
   );
 
   const deleteTransaction = useCallback(
     (id: string) => {
       if (!userId) return;
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      setTransactions((prev) => prev.filter((tx) => tx.id !== id));
       supabase
         .from('transactions')
         .delete()
         .eq('user_id', userId)
         .eq('id', id)
         .then(({ error }) => {
-          if (error) console.warn('Failed to delete transaction', error);
+          if (error) {
+            console.warn('Failed to delete transaction', error);
+            showToast(t('toast.deleteFailed'), 'error');
+            refresh(); // 삭제 실패 시 화면을 DB 기준으로 되돌림
+            return;
+          }
+          showToast(t('toast.deleted'));
         });
     },
-    [userId],
+    [userId, refresh, showToast, t],
   );
 
   const getTransactionById = useCallback((id: string) => transactions.find((t) => t.id === id), [transactions]);
@@ -352,6 +418,8 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       addTransaction,
       updateTransaction,
       bulkUpdateCategory,
+      bulkUpdateFields,
+      bulkDelete,
       deleteTransaction,
       getTransactionById,
       getPendingById,
@@ -368,6 +436,8 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
       addTransaction,
       updateTransaction,
       bulkUpdateCategory,
+      bulkUpdateFields,
+      bulkDelete,
       deleteTransaction,
       getTransactionById,
       getPendingById,

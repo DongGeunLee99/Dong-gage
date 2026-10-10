@@ -13,6 +13,13 @@
     "refreshed": "Updated",
     "hideExcludedFromBudget": "Hide budget-excluded items"
   },
+  "toast": {
+    "saveFailed": "Couldn't save. Please try again",
+    "deleted": "Deleted",
+    "deleteFailed": "Couldn't delete. Please try again",
+    "applied": "Applied",
+    "applyFailed": "Couldn't apply. Please try again"
+  },
   "tabs": {
     "calendar": "Calendar",
     "list": "List",
@@ -29,7 +36,11 @@
     "segmentAll": "All",
     "segmentExcluded": "Excluded",
     "noTransactionsMonth": "No transactions this month",
-    "settleButton": "Settle"
+    "settleButton": "Settle",
+    "selectedCount": "{{count}} selected",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "deleteConfirmTitle": "Delete {{count}} transactions?"
   },
   "pendingReview": {
     "title": "To review",
@@ -95,7 +106,12 @@
     "excludeFromBudget": "Exclude from budget",
     "deleteTransaction": "Delete Transaction",
     "deleteConfirmTitle": "Delete this transaction?",
-    "deleteConfirmBody": "This cannot be undone."
+    "deleteConfirmBody": "This cannot be undone.",
+    "applySameMerchant": "Apply to {{count}} with same name",
+    "applySameMerchantTitle": "Apply to {{count}} with the same name?",
+    "applySameMerchantBody": "Choose what to unify. This transaction is saved too.",
+    "applyFieldCategory": "Category",
+    "applyFieldNote": "Memo & tags"
   },
   "categoryPicker": {
     "title": "Choose Category"
